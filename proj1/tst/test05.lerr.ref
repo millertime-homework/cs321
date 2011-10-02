@@ -1,0 +1,5 @@
+Exception in thread "main" lexer.TokenMgrError: Lexical error at line 5, column 1.  Integer value over 2^31-1
+	at lexer.miniLexerTokenManager.TokenLexicalActions(miniLexerTokenManager.java:1222)
+	at lexer.miniLexerTokenManager.getNextToken(miniLexerTokenManager.java:1167)
+	at lexer.miniLexer.getNextToken(miniLexer.java:106)
+	at lexer.TestLexer.main(TestLexer.java:21)

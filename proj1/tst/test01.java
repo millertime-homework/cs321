@@ -1,0 +1,31 @@
+// MINI 1.6 token list
+boolean 
+class   
+else
+extends
+false
+float
+if
+int
+length
+main
+new
+public
+return
+static
+String
+System.out.println
+this
+true
+void
+while
+()[]{},;.=+-*/&&||! ==!=<<=>>=
+0000011
+1234567890
+123.f
+.123F
+"..."
+abc1123 
+Boolean
+class1
+extend

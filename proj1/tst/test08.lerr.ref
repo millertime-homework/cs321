@@ -1,0 +1,4 @@
+Exception in thread "main" lexer.TokenMgrError: Lexical error at line 3, column 3.  Encountered: "#" (35), after : ""
+	at lexer.miniLexerTokenManager.getNextToken(miniLexerTokenManager.java:1195)
+	at lexer.miniLexer.getNextToken(miniLexer.java:106)
+	at lexer.TestLexer.main(TestLexer.java:21)

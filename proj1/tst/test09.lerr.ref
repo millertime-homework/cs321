@@ -1,0 +1,5 @@
+Exception in thread "main" lexer.TokenMgrError: Unterminated multi-line comments 
+	at lexer.miniLexerTokenManager.SkipLexicalActions(miniLexerTokenManager.java:1206)
+	at lexer.miniLexerTokenManager.getNextToken(miniLexerTokenManager.java:1172)
+	at lexer.miniLexer.getNextToken(miniLexer.java:106)
+	at lexer.TestLexer.main(TestLexer.java:21)

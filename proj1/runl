@@ -1,0 +1,13 @@
+#!/bin/sh
+for i
+do
+	d=`dirname $i`
+	f=`basename $i .java`
+	echo $d/$f:
+	java lexer/TestLexer $d/$f.java 1> $d/$f.tkn 2>$d/$f.lerr
+	if [ -r $d/$f.tkn.ref ]; then diff $d/$f.tkn $d/$f.tkn.ref; fi
+	if [ -r $d/$f.lerr.ref ]; then diff $d/$f.lerr $d/$f.lerr.ref;
+	else cat $d/$f.lerr; fi
+done
+exit 0
+

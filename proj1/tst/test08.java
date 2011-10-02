@@ -1,0 +1,3 @@
+// testing illegal characters
+
+* # _

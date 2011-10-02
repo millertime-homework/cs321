@@ -1,0 +1,85 @@
+PARSER_BEGIN(miniLexer)
+
+package lexer;
+
+public class miniLexer {
+}
+
+PARSER_END(miniLexer)
+
+/* RESERVED WORDS */
+TOKEN :
+{
+  <BOOLEAN: "boolean">
+| <CLASS: "class">
+| <ELSE: "else">
+| <EXTENDS: "extends">
+| <FALSE: "false">
+| <FLOAT: "float">
+| <IF: "if">
+| <INT: "int">
+| <LENGTH: "length"> 
+| <MAIN: "main">
+| <NEW: "new">
+| <PUBLIC: "public">
+| <RETURN: "return">
+| <STATIC: "static">
+| <THIS: "this">
+| <TRUE: "true">
+| <VOID: "void">
+| <WHILE: "while">
+| <STRING: "String">
+| <PRINTLN: "System.out.println">
+}
+
+/* OPERATORS */
+TOKEN :
+{
+  "="
+| "+"
+| "-"
+| "*"
+| "/"
+| "&&"
+| "||"
+| "!"
+| "=="
+| "!="
+| "<"
+| "<="
+| ">"
+| ">="
+}
+
+/* DELIMITERS */
+TOKEN :
+{
+  ";"
+| ","
+| "."
+| "("
+| ")"
+| "["
+| "]"
+| "{"
+| "}"
+}
+
+/* WHITE SPACE */
+SKIP :
+{
+  " "
+| "\t"
+| "\n"
+| "\r"
+}
+
+/* Comment regular expressions were found in the JavaCC examples,
+   more specifically the Java1.0.2 grammar */
+
+/* COMMENTS */
+SPECIAL_TOKEN :
+{
+  <SINGLE_LINE_COMMENT: "//" (~["\n","\r"])* ("\n"|"\r"|"\r\n")>
+| <MULTI_LINE_COMMENT: "/*" (~["*"])* "*" ("*" | (~["*","/"] (~["*"])* "*"))* "/">
+}
