@@ -32,6 +32,37 @@ TOKEN :
 | <PRINTLN: "System.out.println">
 }
 
+/* IDENTIFIERS AND NUMBERS */
+TOKEN :
+{
+  <#DIGIT: ["0"-"9"]>
+| <#LETTER: ["A"-"Z"] | ["a"-"z"]>
+| <ID: <LETTER> (<LETTER> | <DIGIT>)*>
+| <NUM: (<DIGIT>)+>
+  { long i = Long.valueOf(matchedToken.image);
+    if (i > 2147483647)
+      throw new TokenMgrError("Lexical error at line "
+                + matchedToken.beginLine + ", column "
+                + matchedToken.beginColumn
+                + ".  Integer value over 2^31-1", 0);
+  }
+| <#REAL_NUMBER: ((<DIGIT>)* "." (<DIGIT>)+) | ((<DIGIT>)+ "." (<DIGIT>)*)>
+| <REAL: (<REAL_NUMBER> "f") | (<REAL_NUMBER> "F")>
+}
+
+/* STRING LITERALS */
+TOKEN :
+{
+  <#QUOTE: "\"">
+| <STRING_LITERAL: (<QUOTE> (~["\n", "\r", "\""])+ <QUOTE>)>
+  { if (matchedToken.image.length() > 257)
+      throw new TokenMgrError("Lexical error at line "
+                + matchedToken.beginLine + ", column "
+                + matchedToken.beginColumn
+                + ".  String length over 255", 0);
+  }
+}
+
 /* OPERATORS */
 TOKEN :
 {

@@ -1,3 +1,8 @@
 syllabus.pdf
 javacc-5.0
-class_slides/*
+class_slides
+videos
+proj1/tst/test*.lerr
+proj1/tst/test*.tkn
+proj1/lexer/*.java
+proj1/lexer/*.class
