@@ -38,6 +38,12 @@ TOKEN :
   <#DIGIT: ["0"-"9"]>
 | <#LETTER: ["A"-"Z"] | ["a"-"z"]>
 | <ID: <LETTER> (<LETTER> | <DIGIT>)*>
+  { if (matchedToken.image.length() > 255)
+      throw new TokenMgrError("Lexical error at line "
+                + matchedToken.beginLine + ", column "
+                + matchedToken.beginColumn
+                + ".  Id length over 255", 0);
+  }
 | <NUM: (<DIGIT>)+>
   { long i = Long.valueOf(matchedToken.image);
     if (i > 2147483647)
