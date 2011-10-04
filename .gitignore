@@ -4,5 +4,11 @@ class_slides
 videos
 proj1/tst/test*.lerr
 proj1/tst/test*.tkn
-proj1/lexer/*.java
 proj1/lexer/*.class
+proj1/lexer/ParseException.java
+proj1/lexer/SimpleCharStream.java
+proj1/lexer/Token.java
+proj1/lexer/TokenMgrError.java
+proj1/lexer/miniLexer.java
+proj1/lexer/miniLexerConstants.java
+proj1/lexer/miniLexerTokenManager.java
