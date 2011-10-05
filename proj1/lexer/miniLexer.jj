@@ -108,15 +108,41 @@ SKIP :
   " "
 | "\t"
 | "\n"
-| "\r"
+| "\r" 
 }
 
-/* Comment regular expressions were found in the JavaCC examples,
-   more specifically the Java1.0.2 grammar */
+/* SINGLE-LINE COMMENTS */
+SKIP :
+{
+<COMMENT: "//" (~["\n","\r"])* ("\n"|"\r"|"\r\n")>
+}
 
-/* COMMENTS */
+/* MULTI-LINE COMMENTS */
+MORE :
+{
+"/*" : IN_MULTI_LINE_COMMENT
+}
+
+<IN_MULTI_LINE_COMMENT>
+MORE :
+{
+< ~[] >
+}
+
+/* buggy, need help with
+
+<IN_MULTI_LINE_COMMENT>
+SKIP :
+{
+    "<EOF>"
+        { //throw new TokenMgrError("OH GOD", 0); }
+            System.out.println("OH GOD"); }
+}
+*/
+
+
+<IN_MULTI_LINE_COMMENT>
 SPECIAL_TOKEN :
 {
-  <SINGLE_LINE_COMMENT: "//" (~["\n","\r"])* ("\n"|"\r"|"\r\n")>
-| <MULTI_LINE_COMMENT: "/*" (~["*"])* "*" ("*" | (~["*","/"] (~["*"])* "*"))* "/">
+"*/" : DEFAULT
 }
