@@ -111,38 +111,13 @@ SKIP :
 | "\r" 
 }
 
-/* SINGLE-LINE COMMENTS */
+/* COMMENTS */
 SKIP :
 {
-<COMMENT: "//" (~["\n","\r"])* ("\n"|"\r"|"\r\n")>
-}
-
-/* MULTI-LINE COMMENTS */
-MORE :
-{
-"/*" : IN_MULTI_LINE_COMMENT
-}
-
-<IN_MULTI_LINE_COMMENT>
-MORE :
-{
-< ~[] >
-}
-
-/* buggy, need help with
-
-<IN_MULTI_LINE_COMMENT>
-SKIP :
-{
-    "<EOF>"
-        { //throw new TokenMgrError("OH GOD", 0); }
-            System.out.println("OH GOD"); }
-}
-*/
-
-
-<IN_MULTI_LINE_COMMENT>
-SPECIAL_TOKEN :
-{
-"*/" : DEFAULT
+  <SINGLE_LINE_COMMENT: "//" (~["\n","\r"])* ("\n"|"\r"|"\r\n")>
+| <MULTI_LINE_COMMENT: "/*" (~["*"] | "*" ~["/"])* "*/" >
+| <UNTERMINATED_ML_COMMENT: "/*" ~[]>
+  { if (true)
+      throw new TokenMgrError("Unterminated multi-line comments", 0);
+  }
 }
