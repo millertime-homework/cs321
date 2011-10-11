@@ -1,0 +1,4 @@
+parser0.ParseException: Encountered " <ID> "testd01 "" at line 2, column 1.
+Was expecting:
+    "class" ...
+    

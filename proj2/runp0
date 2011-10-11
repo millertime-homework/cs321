@@ -1,0 +1,12 @@
+#!/bin/sh
+for i
+do
+	d=`dirname $i`
+	f=`basename $i .java`
+	echo $d/$f:
+	java parser0/TestParser0 $d/$f.java 2>$d/$f.perr
+	if [ -r $d/$f.perr.ref ]; then diff $d/$f.perr $d/$f.perr.ref; 
+	else cat $d/$f.perr; fi
+done
+exit 0
+
