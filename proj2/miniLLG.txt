@@ -1,0 +1,33 @@
+Program    -> ClassDecl {ClassDecl}
+ClassDecl  -> "class" <ID> ["extends" <ID>] "{" {VarDecl} {MethodDecl} "}"
+MethodDecl -> "public" Type <ID> "(" [Formals] ")" "{" {VarDecl} {Statement} "}"
+           |  "public" "void" <ID> "(" [Formals] ")" "{" {VarDecl} {Statement} "}"
+           |  "public" "static" "void" "main" "(" "String" "[" "]" <ID> ")"
+                       "{" {VarDecl} {Statement} "}"
+Formals    -> Type <ID> {"," Type <ID>}
+VarDecl    -> Type <ID> ["=" InitExpr] ";"
+Type       -> BasicType ["[" "]"] | <ID>
+BasicType  -> "int" | "float" | "boolean"
+Statement  -> "{" {Statement} "}"
+           |  Lvalue "=" InitExpr ";"
+           |  Lvalue "(" [Args] ")" ";"
+           |  "if" "(" Expr ")" Statement ["else" Statement]
+           |  "while" "(" Expr ")" Statement
+           |  "System.out.println" "(" [Expr | <STRVAL>] ")" ";"
+           |  "return" [Expr] ";"
+Args       -> Expr {"," Expr}
+InitExpr   -> "new" BasicType "[" <INTVAL> "]"
+           |  "new" <ID> "(" [Args] ")"
+           |  Expr
+Expr       -> Expr Binop Expr
+           |  Unop Expr
+           |  "(" Expr ")"
+           |  Lvalue "(" [Args] ")"
+           |  Lvalue "." "length" "(" ")"
+           |  Lvalue
+           |  Literal
+Lvalue     -> ["this" "."] <ID> {"." <ID>} ["[" Expr "]"]
+Literal    -> <INTVAL> | <FLOATVAL> | "true" | "false"
+Binop      -> "+" | "-" | "*" | "/" | "&&" | "||" | "==" | "!=" | "<" | "<=" | 
+                          ">" | ">="
+Unop       -> "-" | "!"
