@@ -1,0 +1,351 @@
+PARSER_BEGIN(miniParser0)
+
+package parser0;
+
+public class miniParser0 {
+}
+
+PARSER_END(miniParser0)
+
+/**************************************
+ Lexer Token Specification Begins Here 
+***************************************/
+
+/* RESERVED WORDS */
+TOKEN :
+{
+  <BOOLEAN: "boolean">
+| <CLASS: "class">
+| <ELSE: "else">
+| <EXTENDS: "extends">
+| <FALSE: "false">
+| <FLOAT: "float">
+| <IF: "if">
+| <INT: "int">
+| <LENGTH: "length"> 
+| <MAIN: "main">
+| <NEW: "new">
+| <PUBLIC: "public">
+| <RETURN: "return">
+| <STATIC: "static">
+| <THIS: "this">
+| <TRUE: "true">
+| <VOID: "void">
+| <WHILE: "while">
+| <STRING: "String">
+| <PRINTLN: "System.out.println">
+}
+
+/* IDENTIFIERS AND NUMBERS */
+TOKEN :
+{
+  <#DIGIT: ["0"-"9"]>
+| <#LETTER: ["A"-"Z"] | ["a"-"z"]>
+| <ID: <LETTER> (<LETTER> | <DIGIT>)*>
+  { if (matchedToken.image.length() > 255)
+      throw new TokenMgrError("Lexical error at line "
+                + matchedToken.beginLine + ", column "
+                + matchedToken.beginColumn
+                + ".  Id length over 255", 0);
+  }
+| <NUM: (<DIGIT>)+>
+  { long i = Long.valueOf(matchedToken.image);
+    if (i > 2147483647)
+      throw new TokenMgrError("Lexical error at line "
+                + matchedToken.beginLine + ", column "
+                + matchedToken.beginColumn
+                + ".  Integer value over 2^31-1", 0);
+  }
+| <#REAL_NUMBER: ((<DIGIT>)* "." (<DIGIT>)+) | ((<DIGIT>)+ "." (<DIGIT>)*)>
+| <REAL: (<REAL_NUMBER> "f") | (<REAL_NUMBER> "F")>
+}
+
+/* STRING LITERALS */
+TOKEN :
+{
+  <#QUOTE: "\"">
+| <STRING_LITERAL: (<QUOTE> (~["\n", "\r", "\""])+ <QUOTE>)>
+  { if (matchedToken.image.length() > 257)
+      throw new TokenMgrError("Lexical error at line "
+                + matchedToken.beginLine + ", column "
+                + matchedToken.beginColumn
+                + ".  String length over 255", 0);
+  }
+}
+
+/* OPERATORS */
+TOKEN :
+{
+  <ASSIGNMENT: "=">
+| <PLUS: "+">
+| <MINUS: "-">
+| <MULTIPLY: "*">
+| <DIVIDE: "/">
+| <AND: "&&">
+| <OR: "||">
+| <NOT: "!">
+| <EQUALS: "==">
+| <NOT_EQUALS: "!=">
+| <LESS_THAN: "<">
+| <LESS_THAN_OR_EQUAL: "<=">
+| <GREATER_THAN: ">">
+| <GREATER_THAN_OR_EQUAL: ">=">
+}
+
+/* DELIMITERS */
+TOKEN :
+{
+  <SEMICOLON: ";">
+| <COMMA: ",">
+| <PERIOD: ".">
+| <LEFT_PAREN: "(">
+| <RIGHT_PAREN: ")">
+| <LEFT_BRACKET: "[">
+| <RIGHT_BRACKET: "]">
+| <LEFT_BRACE: "{">
+| <RIGHT_BRACE: "}">
+}
+
+/* WHITE SPACE */
+SKIP :
+{
+  " "
+| "\t"
+| "\n"
+| "\r" 
+}
+
+/* COMMENTS */
+SKIP :
+{
+  <SINGLE_LINE_COMMENT: "//" (~["\n","\r"])* ("\n"|"\r"|"\r\n")>
+| <MULTI_LINE_COMMENT: "/*" (~["*"] | "*" ~["/"])* "*/" >
+| <UNTERMINATED_ML_COMMENT: "/*" ~[]>
+  { if (true)
+      throw new TokenMgrError("Unterminated multi-line comments", 0);
+  }
+}
+
+/********************************************
+ Parser Production Specification Begins Here 
+*********************************************/
+
+//Program    -> ClassDecl {ClassDecl}
+void Program() :
+{}
+{
+    ClassDecl() ( ClassDecl() )*
+}
+
+//ClassDecl  -> "class" <ID> ["extends" <ID>] "{" {VarDecl} {MethodDecl} "}"
+void ClassDecl() :
+{}
+{
+    <CLASS> <ID> [ <EXTENDS> <ID> ] <LEFT_BRACE> ( VarDecl() )* 
+        ( MethodDecl() )* <RIGHT_BRACE>
+}
+
+//MethodDecl -> "public" Type <ID> "(" [Formals] ")" MethodBody
+//           |  "public" "void" <ID> "(" [Formals] ")" MethodBody
+//           |  "public" "static" "void" "main" "(" "String" "[" "]" <ID> ")" 
+//                 MethodBody
+void MethodDecl() :
+{}
+{
+    <PUBLIC> Type() <ID> <LEFT_PAREN> [ Formals() ] <RIGHT_PAREN> MethodBody()
+|
+    <PUBLIC> <VOID> <ID> <LEFT_PAREN> [ Formals() ] <RIGHT_PAREN> MethodBody()
+|
+    <PUBLIC> <STATIC> <VOID> <MAIN> <LEFT_PAREN> <STRING> <LEFT_BRACKET> 
+        <RIGHT_BRACKET> <ID> <RIGHT_PAREN> MethodBody()
+}
+
+//MethodBody -> "{" {VarDecl} {Statement} "}"
+void MethodBody() :
+{}
+{
+    <LEFT_BRACE> ( VarDecl() )* ( Statement() )* <RIGHT_BRACE>
+}
+
+//Formals    -> Type <ID> {"," Type <ID>}
+void Formals() :
+{}
+{
+    Type() <ID> ( <COMMA> Type() <ID> )*
+}
+
+//VarDecl    -> Type <ID> ["=" InitExpr] ";"
+void VarDecl() :
+{}
+{
+    Type() <ID> [ <ASSIGNMENT> InitExpr() ] <SEMICOLON>
+}
+
+//Type       -> BasicType ["[" "]"] | <ID>
+void Type() :
+{}
+{
+    BasicType() [ <LEFT_BRACKET> <RIGHT_BRACKET> ]
+|
+    <ID>
+}
+
+//BasicType  -> "int" | "float" | "boolean"
+void BasicType() :
+{}
+{
+    <INT>
+|
+    <FLOAT>
+|
+    <BOOLEAN>
+}
+
+//Statement  -> "{" {Statement} "}"
+//           |  Lvalue "=" InitExpr ";"
+//           |  Lvalue "(" [Args] ")" ";"
+//           |  "if" "(" Expr ")" Statement ["else" Statement]
+//           |  "while" "(" Expr ")" Statement
+//           |  "System.out.println" "(" [Expr | <STRVAL>] ")" ";"
+//           |  "return" [Expr] ";"
+void Statement() :
+{}
+{
+    <LEFT_BRACE> ( Statement() )* <RIGHT_BRACE>
+|
+    Lvalue() <ASSIGNMENT> InitExpr() <SEMICOLON>
+|
+    Lvalue() <LEFT_PAREN> [ Args() ] <RIGHT_PAREN> <SEMICOLON>
+|
+    <IF> <LEFT_PAREN> Expr() <RIGHT_PAREN> Statement() [ <ELSE> Statement() ]
+|
+    <WHILE> <LEFT_PAREN> Expr() <RIGHT_PAREN> Statement()
+|
+    <PRINTLN> <LEFT_PAREN> [ Expr() | <STRING_LITERAL> ] <RIGHT_PAREN> <SEMICOLON>
+|
+    <RETURN> [ Expr() ] <SEMICOLON>
+}
+
+//Args       -> Expr {"," Expr}
+void Args() :
+{}
+{
+    Expr() ( Expr() )*
+}
+
+//InitExpr   -> "new" BasicType "[" <INTVAL> "]"
+//           |  "new" <ID> "(" [Args] ")"
+//           |  Expr
+void InitExpr() :
+{}
+{
+    <NEW> BasicType() <LEFT_BRACKET> <NUM> <RIGHT_BRACKET>
+}
+
+//Expr       -> Expr "||" AndExpr
+//           |  AndExpr
+void Expr() :
+{}
+{
+    Expr() <OR> AndExpr()
+|
+    AndExpr()
+}
+
+//AndExpr    -> AndExpr "&&" RelExpr
+//           |  RelExpr
+void AndExpr() :
+{}
+{
+    AndExpr() <AND> RelExpr()
+|
+    RelExpr()
+}
+
+//RelExpr    -> RelExpr Relop ArithExpr
+//           |  ArithExpr
+void RelExpr() :
+{}
+{
+    RelExpr() Relop() ArithExpr()
+|
+    ArithExpr()
+}
+
+//ArithExpr  -> ArithExpr "+" Term
+//           |  ArithExpr "-" Term
+//           |  Term
+void ArithExpr() :
+{}
+{
+    ArithExpr() <PLUS> Term()
+|
+    ArithExpr() <MINUS> Term()
+|
+    Term()
+}
+
+//Term       -> Term "*" Factor
+//           |  Term "/" Factor
+//           |  Factor
+void Term() :
+{}
+{
+    Term() <MULTIPLY> Factor()
+|
+    Term() <DIVIDE> Factor()
+|
+    Factor()
+}
+
+//Factor     -> Unop Factor
+//           |  "(" Expr ")"
+//           |  Lvalue "(" [Args] ")"
+//           |  Lvalue "." "length" "(" ")"
+//           |  Lvalue
+//           |  Literal
+void Factor() :
+{}
+{
+    Unop() Factor()
+|
+    <LEFT_PAREN> Expr() <RIGHT_PAREN>
+|
+    Lvalue() <LEFT_PAREN> [ Args() ] <RIGHT_PAREN>
+|
+    Lvalue() <PERIOD> <LENGTH> <LEFT_PAREN> <RIGHT_PAREN>
+|
+    Lvalue()
+|
+    Literal()
+}
+
+//Lvalue     -> ["this" "."] <ID> {"." <ID>} ["[" Expr "]"]
+void Lvalue() :
+{}
+{
+    [ <THIS> <PERIOD> ] <ID> ( <PERIOD> <ID> )* [ <LEFT_BRACKET> Expr() 
+                                                  <RIGHT_BRACKET> ]
+}
+
+//Literal    -> <INTVAL> | <FLOATVAL> | "true" | "false"
+void Literal() :
+{}
+{
+    <NUM> | <REAL> | <TRUE> | <FALSE>
+}
+
+//Relop      -> "==" | "!=" | "<" | "<=" | ">" | ">="
+void Relop() :
+{}
+{
+    <EQUALS> | <NOT_EQUALS> | <LESS_THAN> | <LESS_THAN_OR_EQUAL> |
+        <GREATER_THAN> | <GREATER_THAN_OR_EQUAL>
+}
+
+//Unop       -> "-" | "!"
+void Unop() :
+{}
+{
+    <MINUS> | <NOT>
+}
