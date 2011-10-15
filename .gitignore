@@ -12,3 +12,5 @@ proj1/lexer/TokenMgrError.java
 proj1/lexer/miniLexer.java
 proj1/lexer/miniLexerConstants.java
 proj1/lexer/miniLexerTokenManager.java
+proj2/parser0/*.java
+test_lexer

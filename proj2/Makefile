@@ -87,6 +87,9 @@ clean_lexer:
 clean_parser:
 	$(RM) parser/*.class parser/miniParser.java
 
+clean_parser0:
+	$(RM) parser0/*.class parser0/miniParser0.java
+
 clean_symbol:
 	$(RM) symbol/*.class
 
