@@ -209,8 +209,7 @@ void BasicType() :
 }
 
 //Statement  -> "{" {Statement} "}"
-//           |  Lvalue "=" InitExpr ";"
-//           |  Lvalue "(" [Args] ")" ";"
+//           |  Lvalue Lvalue_Statement
 //           |  "if" "(" Expr ")" Statement ["else" Statement]
 //           |  "while" "(" Expr ")" Statement
 //           |  "System.out.println" "(" [Expr | <STRVAL>] ")" ";"
@@ -220,9 +219,7 @@ void Statement() :
 {
     <LEFT_BRACE> ( Statement() )* <RIGHT_BRACE>
 |
-    Lvalue() <ASSIGNMENT> InitExpr() <SEMICOLON>
-|
-    Lvalue() <LEFT_PAREN> [ Args() ] <RIGHT_PAREN> <SEMICOLON>
+    Lvalue() Lvalue_Statement()
 |
     <IF> <LEFT_PAREN> Expr() <RIGHT_PAREN> Statement() [ <ELSE> Statement() ]
 |
@@ -231,6 +228,16 @@ void Statement() :
     <PRINTLN> <LEFT_PAREN> [ Expr() | <STRING_LITERAL> ] <RIGHT_PAREN> <SEMICOLON>
 |
     <RETURN> [ Expr() ] <SEMICOLON>
+}
+
+//Lvalue_Statement -> "=" InitExpr ";"
+//                 |  "(" [Args] ")" ";"
+void Lvalue_Statement() :
+{}
+{
+    <ASSIGNMENT> InitExpr() <SEMICOLON>
+|
+    <LEFT_PAREN> [ Args() ] <RIGHT_PAREN> <SEMICOLON>
 }
 
 //Args       -> Expr {"," Expr}
@@ -247,6 +254,10 @@ void InitExpr() :
 {}
 {
     <NEW> BasicType() <LEFT_BRACKET> <NUM> <RIGHT_BRACKET>
+|
+    <NEW> <ID> <LEFT_PAREN> [ Args() ] <RIGHT_PAREN>
+|
+    Expr()
 }
 
 //Expr       -> AndExpr OrTail
