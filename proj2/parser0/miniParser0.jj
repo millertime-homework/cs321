@@ -145,18 +145,25 @@ void ClassDecl() :
         ( MethodDecl() )* <RIGHT_BRACE>
 }
 
-//MethodDecl -> "public" Type <ID> "(" [Formals] ")" MethodBody
-//           |  "public" "void" <ID> "(" [Formals] ")" MethodBody
-//           |  "public" "static" "void" "main" "(" "String" "[" "]" <ID> ")" 
+//MethodPre  -> "public" MethodDecl
+void MethodPre() :
+{}
+{
+    <PUBLIC> MethodDecl()
+}
+
+//MethodDecl -> Type <ID> "(" [Formals] ")" MethodBody
+//           |  "void" <ID> "(" [Formals] ")" MethodBody
+//           |  "static" "void" "main" "(" "String" "[" "]" <ID> ")" 
 //                 MethodBody
 void MethodDecl() :
 {}
 {
-    <PUBLIC> Type() <ID> <LEFT_PAREN> [ Formals() ] <RIGHT_PAREN> MethodBody()
+    Type() <ID> <LEFT_PAREN> [ Formals() ] <RIGHT_PAREN> MethodBody()
 |
-    <PUBLIC> <VOID> <ID> <LEFT_PAREN> [ Formals() ] <RIGHT_PAREN> MethodBody()
+    <VOID> <ID> <LEFT_PAREN> [ Formals() ] <RIGHT_PAREN> MethodBody()
 |
-    <PUBLIC> <STATIC> <VOID> <MAIN> <LEFT_PAREN> <STRING> <LEFT_BRACKET> 
+    <STATIC> <VOID> <MAIN> <LEFT_PAREN> <STRING> <LEFT_BRACKET> 
         <RIGHT_BRACKET> <ID> <RIGHT_PAREN> MethodBody()
 }
 
@@ -242,60 +249,80 @@ void InitExpr() :
     <NEW> BasicType() <LEFT_BRACKET> <NUM> <RIGHT_BRACKET>
 }
 
-//Expr       -> Expr "||" AndExpr
-//           |  AndExpr
+//Expr       -> AndExpr OrTail
 void Expr() :
 {}
 {
-    Expr() <OR> AndExpr()
-|
-    AndExpr()
+    AndExpr() OrTail()
 }
 
-//AndExpr    -> AndExpr "&&" RelExpr
-//           |  RelExpr
+//OrTail     -> {"||" AndExpr OrTail}
+void OrTail() :
+{}
+{
+    ( <OR> AndExpr() OrTail() )*
+}
+
+//AndExpr    -> RelExpr AndTail
 void AndExpr() :
 {}
 {
-    AndExpr() <AND> RelExpr()
-|
-    RelExpr()
+    RelExpr() AndTail()
 }
 
-//RelExpr    -> RelExpr Relop ArithExpr
-//           |  ArithExpr
+//AndTail   -> {"&&" RelExpr AndTail}
+void AndTail() :
+{}
+{
+    ( <AND> RelExpr() AndTail() )*
+}
+
+//RelExpr    -> ArithExpr RelTail
 void RelExpr() :
 {}
 {
-    RelExpr() Relop() ArithExpr()
-|
-    ArithExpr()
+    ArithExpr() RelTail()
 }
 
-//ArithExpr  -> ArithExpr "+" Term
-//           |  ArithExpr "-" Term
-//           |  Term
+//RelTail    -> {Relop ArithExpr RelTail}
+void RelTail() :
+{}
+{
+    ( Relop() ArithExpr() RelTail() )*
+}
+
+//ArithExpr  -> Term ArithTail
 void ArithExpr() :
 {}
 {
-    ArithExpr() <PLUS> Term()
-|
-    ArithExpr() <MINUS> Term()
-|
-    Term()
+    Term() ArithTail()
 }
 
-//Term       -> Term "*" Factor
-//           |  Term "/" Factor
-//           |  Factor
+//ArithTail  -> "+" Term ArithTail
+//           |  "-" Term ArithTail
+void ArithTail() :
+{}
+{
+    ( <PLUS> Term() ArithTail() )*
+|
+    ( <MINUS> Term() ArithTail() )*
+}
+
+//Term       -> Factor TermTail
 void Term() :
 {}
 {
-    Term() <MULTIPLY> Factor()
+    Factor() TermTail()
+}
+
+//TermTail   -> "*" Factor TermTail
+//           |  "/" Factor TermTail
+void TermTail() :
+{}
+{
+    ( <MULTIPLY> Factor() TermTail() )*
 |
-    Term() <DIVIDE> Factor()
-|
-    Factor()
+    ( <DIVIDE> Factor() TermTail() )*
 }
 
 //Factor     -> Unop Factor
