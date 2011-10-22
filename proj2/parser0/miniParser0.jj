@@ -137,12 +137,12 @@ void Program() :
     ClassDecl() ( ClassDecl() )*
 }
 
-//ClassDecl  -> "class" <ID> ["extends" <ID>] "{" {VarDecl} {MethodDecl} "}"
+//ClassDecl  -> "class" <ID> ["extends" <ID>] "{" {VarDecl} {MethodPre} "}"
 void ClassDecl() :
 {}
 {
     <CLASS> <ID> [ <EXTENDS> <ID> ] <LEFT_BRACE> ( VarDecl() )* 
-        ( MethodDecl() )* <RIGHT_BRACE>
+        ( MethodPre() )* <RIGHT_BRACE>
 }
 
 //MethodPre  -> "public" MethodDecl
@@ -171,7 +171,7 @@ void MethodDecl() :
 void MethodBody() :
 {}
 {
-    <LEFT_BRACE> ( VarDecl() )* ( Statement() )* <RIGHT_BRACE>
+    <LEFT_BRACE> ( LOOKAHEAD(2) VarDecl() )* ( Statement() )* <RIGHT_BRACE>
 }
 
 //Formals    -> Type <ID> {"," Type <ID>}
@@ -221,7 +221,7 @@ void Statement() :
 |
     Lvalue() Lvalue_Statement()
 |
-    <IF> <LEFT_PAREN> Expr() <RIGHT_PAREN> Statement() [ <ELSE> Statement() ]
+    <IF> <LEFT_PAREN> Expr() <RIGHT_PAREN> Statement() [ LOOKAHEAD(1) <ELSE> Statement() ]
 |
     <WHILE> <LEFT_PAREN> Expr() <RIGHT_PAREN> Statement()
 |
@@ -247,17 +247,24 @@ void Args() :
     Expr() ( Expr() )*
 }
 
-//InitExpr   -> "new" BasicType "[" <INTVAL> "]"
-//           |  "new" <ID> "(" [Args] ")"
+//InitExpr   -> "new" NewInitExpr
 //           |  Expr
 void InitExpr() :
 {}
 {
-    <NEW> BasicType() <LEFT_BRACKET> <NUM> <RIGHT_BRACKET>
-|
-    <NEW> <ID> <LEFT_PAREN> [ Args() ] <RIGHT_PAREN>
+    <NEW> NewInitExpr()
 |
     Expr()
+}
+
+//NewInitExpr   -> BasicType "[" <INTVAL> "]"
+//              |  <ID> "(" [Args] ")"
+void NewInitExpr() :
+{}
+{
+    BasicType() <LEFT_BRACKET> <NUM> <RIGHT_BRACKET>
+|
+    <ID> <LEFT_PAREN> [ Args() ] <RIGHT_PAREN>
 }
 
 //Expr       -> AndExpr OrTail
@@ -271,7 +278,7 @@ void Expr() :
 void OrTail() :
 {}
 {
-    ( <OR> AndExpr() OrTail() )*
+    ( LOOKAHEAD(2) <OR> AndExpr() OrTail() )*
 }
 
 //AndExpr    -> RelExpr AndTail
@@ -285,7 +292,7 @@ void AndExpr() :
 void AndTail() :
 {}
 {
-    ( <AND> RelExpr() AndTail() )*
+    ( LOOKAHEAD(2) <AND> RelExpr() AndTail() )*
 }
 
 //RelExpr    -> ArithExpr RelTail
@@ -299,7 +306,7 @@ void RelExpr() :
 void RelTail() :
 {}
 {
-    ( Relop() ArithExpr() RelTail() )*
+    ( LOOKAHEAD(2) Relop() ArithExpr() RelTail() )*
 }
 
 //ArithExpr  -> Term ArithTail
@@ -314,9 +321,17 @@ void ArithExpr() :
 void ArithTail() :
 {}
 {
-    ( <PLUS> Term() ArithTail() )*
+    ( LOOKAHEAD(2) Add() Term() ArithTail() )*
+}
+
+//Add        -> "+"
+//           |  "-"
+void Add() :
+{}
+{
+    <PLUS>
 |
-    ( <MINUS> Term() ArithTail() )*
+    <MINUS>
 }
 
 //Term       -> Factor TermTail
@@ -331,16 +346,22 @@ void Term() :
 void TermTail() :
 {}
 {
-    ( <MULTIPLY> Factor() TermTail() )*
+    ( LOOKAHEAD(2) Mult() Factor() TermTail() )*
+}
+
+//Mult       -> "*"
+//           |  "/"
+void Mult() :
+{}
+{
+    <MULTIPLY>
 |
-    ( <DIVIDE> Factor() TermTail() )*
+    <DIVIDE>
 }
 
 //Factor     -> Unop Factor
 //           |  "(" Expr ")"
-//           |  Lvalue "(" [Args] ")"
-//           |  Lvalue "." "length" "(" ")"
-//           |  Lvalue
+//           |  Lvalue [Lval_Factor]
 //           |  Literal
 void Factor() :
 {}
@@ -349,20 +370,26 @@ void Factor() :
 |
     <LEFT_PAREN> Expr() <RIGHT_PAREN>
 |
-    Lvalue() <LEFT_PAREN> [ Args() ] <RIGHT_PAREN>
-|
-    Lvalue() <PERIOD> <LENGTH> <LEFT_PAREN> <RIGHT_PAREN>
-|
-    Lvalue()
+    Lvalue() [ LOOKAHEAD(2) Lval_Factor() ]
 |
     Literal()
+}
+
+//Lval_Factor -> "(" [Args] ")"
+//            |  "." "length" "(" ")"
+void Lval_Factor() :
+{}
+{
+    <LEFT_PAREN> [ Args() ] <RIGHT_PAREN>
+|
+    <PERIOD> <LENGTH> <LEFT_PAREN> <RIGHT_PAREN>
 }
 
 //Lvalue     -> ["this" "."] <ID> {"." <ID>} ["[" Expr "]"]
 void Lvalue() :
 {}
 {
-    [ <THIS> <PERIOD> ] <ID> ( <PERIOD> <ID> )* [ <LEFT_BRACKET> Expr() 
+    [ <THIS> <PERIOD> ] <ID> ( LOOKAHEAD(2) <PERIOD> <ID> )* [ <LEFT_BRACKET> Expr() 
                                                   <RIGHT_BRACKET> ]
 }
 
