@@ -223,9 +223,9 @@ void Statement() :
 |
     <IF> <LEFT_PAREN> Expr() <RIGHT_PAREN> Statement() [ LOOKAHEAD(1) <ELSE> Statement() ]
 |
-    <WHILE> <LEFT_PAREN> Expr() <RIGHT_PAREN> Statement()
-|
     <PRINTLN> <LEFT_PAREN> [ Expr() | <STRING_LITERAL> ] <RIGHT_PAREN> <SEMICOLON>
+|
+    <WHILE> <LEFT_PAREN> Expr() <RIGHT_PAREN> Statement()
 |
     <RETURN> [ Expr() ] <SEMICOLON>
 }
@@ -244,7 +244,7 @@ void Lvalue_Statement() :
 void Args() :
 {}
 {
-    Expr() ( Expr() )*
+    Expr() ( <COMMA> Expr() )*
 }
 
 //InitExpr   -> "new" NewInitExpr
