@@ -3,12 +3,12 @@
 class test {
   public static void main(String[] a) {
     A x = new A();
-    System.out.println(x.get_fval(5));
+    System.out.println(x.getfval(5));
   }
 }
 
 class A {
-  public float get_fval(int i) {
+  public float getfval(int i) {
     float x = 3.1f;
     return x * i;
   }

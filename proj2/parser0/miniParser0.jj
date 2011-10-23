@@ -27,13 +27,13 @@ TOKEN :
 | <NEW: "new">
 | <PUBLIC: "public">
 | <RETURN: "return">
+| <PRINTLN: "System.out.println">
 | <STATIC: "static">
 | <THIS: "this">
 | <TRUE: "true">
 | <VOID: "void">
 | <WHILE: "while">
 | <STRING: "String">
-| <PRINTLN: "System.out.println">
 }
 
 /* IDENTIFIERS AND NUMBERS */
@@ -48,7 +48,7 @@ TOKEN :
                 + matchedToken.beginColumn
                 + ".  Id length over 255", 0);
   }
-| <NUM: (<DIGIT>)+>
+| <INTVAL: (<DIGIT>)+>
   { long i = Long.valueOf(matchedToken.image);
     if (i > 2147483647)
       throw new TokenMgrError("Lexical error at line "
@@ -73,10 +73,19 @@ TOKEN :
   }
 }
 
-/* OPERATORS */
+/* DELIMITERS AND OPERATORS */
 TOKEN :
 {
-  <ASSIGNMENT: "=">
+  <LEFT_PAREN: "(">
+| <RIGHT_PAREN: ")">
+| <LEFT_BRACKET: "[">
+| <RIGHT_BRACKET: "]">
+| <LEFT_BRACE: "{">
+| <RIGHT_BRACE: "}">
+| <ASSIGNMENT: "=">
+| <SEMICOLON: ";">
+| <COMMA: ",">
+| <PERIOD: ".">
 | <PLUS: "+">
 | <MINUS: "-">
 | <MULTIPLY: "*">
@@ -90,20 +99,6 @@ TOKEN :
 | <LESS_THAN_OR_EQUAL: "<=">
 | <GREATER_THAN: ">">
 | <GREATER_THAN_OR_EQUAL: ">=">
-}
-
-/* DELIMITERS */
-TOKEN :
-{
-  <SEMICOLON: ";">
-| <COMMA: ",">
-| <PERIOD: ".">
-| <LEFT_PAREN: "(">
-| <RIGHT_PAREN: ")">
-| <LEFT_BRACKET: "[">
-| <RIGHT_BRACKET: "]">
-| <LEFT_BRACE: "{">
-| <RIGHT_BRACE: "}">
 }
 
 /* WHITE SPACE */
@@ -262,7 +257,7 @@ void InitExpr() :
 void NewInitExpr() :
 {}
 {
-    BasicType() <LEFT_BRACKET> <NUM> <RIGHT_BRACKET>
+    BasicType() <LEFT_BRACKET> <INTVAL> <RIGHT_BRACKET>
 |
     <ID> <LEFT_PAREN> [ Args() ] <RIGHT_PAREN>
 }
@@ -397,7 +392,7 @@ void Lvalue() :
 void Literal() :
 {}
 {
-    <NUM> | <REAL> | <TRUE> | <FALSE>
+    <INTVAL> | <REAL> | <TRUE> | <FALSE>
 }
 
 //Relop      -> "==" | "!=" | "<" | "<=" | ">" | ">="
