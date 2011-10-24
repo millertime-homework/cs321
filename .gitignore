@@ -20,4 +20,5 @@ proj2/parser0/TokenMgrError.java
 proj2/parser0/miniParser0.java
 proj2/parser0/miniParser0Constants.java
 proj2/parser0/miniParser0TokenManager.java
+proj2/tst/*.perr
 test_lexer
