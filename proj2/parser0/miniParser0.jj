@@ -269,11 +269,11 @@ void Expr() :
     AndExpr() OrTail()
 }
 
-//OrTail     -> {"||" AndExpr OrTail}
+//OrTail     -> ["||" AndExpr OrTail]
 void OrTail() :
 {}
 {
-    ( LOOKAHEAD(2) <OR> AndExpr() OrTail() )*
+    [ <OR> AndExpr() OrTail() ]
 }
 
 //AndExpr    -> RelExpr AndTail
@@ -283,11 +283,11 @@ void AndExpr() :
     RelExpr() AndTail()
 }
 
-//AndTail   -> {"&&" RelExpr AndTail}
+//AndTail   -> ["&&" RelExpr AndTail]
 void AndTail() :
 {}
 {
-    ( LOOKAHEAD(2) <AND> RelExpr() AndTail() )*
+    [ <AND> RelExpr() AndTail() ]
 }
 
 //RelExpr    -> ArithExpr RelTail
@@ -297,11 +297,11 @@ void RelExpr() :
     ArithExpr() RelTail()
 }
 
-//RelTail    -> {Relop ArithExpr RelTail}
+//RelTail    -> [Relop ArithExpr RelTail]
 void RelTail() :
 {}
 {
-    ( LOOKAHEAD(2) Relop() ArithExpr() RelTail() )*
+    [ Relop() ArithExpr() RelTail() ]
 }
 
 //ArithExpr  -> Term ArithTail
@@ -311,16 +311,14 @@ void ArithExpr() :
     Term() ArithTail()
 }
 
-//ArithTail  -> "+" Term ArithTail
-//           |  "-" Term ArithTail
+//ArithTail  -> [ Add Term ArithTail ]
 void ArithTail() :
 {}
 {
-    ( LOOKAHEAD(2) Add() Term() ArithTail() )*
+    [ Add() Term() ArithTail() ]
 }
 
-//Add        -> "+"
-//           |  "-"
+//Add        -> "+" | "-"
 void Add() :
 {}
 {
@@ -336,16 +334,14 @@ void Term() :
     Factor() TermTail()
 }
 
-//TermTail   -> "*" Factor TermTail
-//           |  "/" Factor TermTail
+//TermTail   -> [ Mult Factor TermTail ]
 void TermTail() :
 {}
 {
-    ( LOOKAHEAD(2) Mult() Factor() TermTail() )*
+    [ Mult() Factor() TermTail() ]
 }
 
-//Mult       -> "*"
-//           |  "/"
+//Mult       -> "*" | "/"
 void Mult() :
 {}
 {
@@ -365,7 +361,7 @@ void Factor() :
 |
     <LEFT_PAREN> Expr() <RIGHT_PAREN>
 |
-    Lvalue() [ LOOKAHEAD(2) Lval_Factor() ]
+    Lvalue() [ Lval_Factor() ]
 |
     Literal()
 }
