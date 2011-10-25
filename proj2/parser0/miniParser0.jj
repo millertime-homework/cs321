@@ -82,10 +82,10 @@ TOKEN :
 | <RIGHT_BRACKET: "]">
 | <LEFT_BRACE: "{">
 | <RIGHT_BRACE: "}">
-| <ASSIGNMENT: "=">
-| <SEMICOLON: ";">
 | <COMMA: ",">
 | <PERIOD: ".">
+| <ASSIGNMENT: "=">
+| <SEMICOLON: ";">
 | <PLUS: "+">
 | <MINUS: "-">
 | <MULTIPLY: "*">
@@ -301,7 +301,7 @@ void RelExpr() :
 void RelTail() :
 {}
 {
-    [ Relop() ArithExpr() RelTail() ]
+    [ Relop() ArithExpr() ]
 }
 
 //ArithExpr  -> Term ArithTail
