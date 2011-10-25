@@ -83,22 +83,22 @@ TOKEN :
 | <LEFT_BRACE: "{">
 | <RIGHT_BRACE: "}">
 | <COMMA: ",">
-| <PERIOD: ".">
 | <ASSIGNMENT: "=">
 | <SEMICOLON: ";">
+| <OR: "||">
+| <AND: "&&">
 | <PLUS: "+">
 | <MINUS: "-">
 | <MULTIPLY: "*">
 | <DIVIDE: "/">
-| <AND: "&&">
-| <OR: "||">
-| <NOT: "!">
+| <PERIOD: ".">
 | <EQUALS: "==">
 | <NOT_EQUALS: "!=">
 | <LESS_THAN: "<">
 | <LESS_THAN_OR_EQUAL: "<=">
 | <GREATER_THAN: ">">
 | <GREATER_THAN_OR_EQUAL: ">=">
+| <NOT: "!">
 }
 
 /* WHITE SPACE */
