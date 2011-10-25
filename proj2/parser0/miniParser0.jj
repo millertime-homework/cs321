@@ -297,7 +297,7 @@ void RelExpr() :
     ArithExpr() RelTail()
 }
 
-//RelTail    -> [Relop ArithExpr RelTail]
+//RelTail    -> [Relop ArithExpr]
 void RelTail() :
 {}
 {

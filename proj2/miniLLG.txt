@@ -1,46 +1,49 @@
 /* Russell Miller miniLLG */
 
-Program    -> ClassDecl {ClassDecl}
-ClassDecl  -> "class" <ID> ["extends" <ID>] "{" {VarDecl} {MethodDecl} "}"
-MethodDecl -> "public" Type <ID> "(" [Formals] ")" MethodBody
-           |  "public" "void" <ID> "(" [Formals] ")" MethodBody
-           |  "public" "static" "void" "main" "(" "String" "[" "]" <ID> ")"
-                       MethodBody
-MethodBody -> "{" {VarDecl} {Statement} "}"
-Formals    -> Type <ID> {"," Type <ID>}
-VarDecl    -> Type <ID> ["=" InitExpr] ";"
-Type       -> BasicType ["[" "]"] | <ID>
-BasicType  -> "int" | "float" | "boolean"
-Statement  -> "{" {Statement} "}"
-           |  Lvalue "=" InitExpr ";"
-           |  Lvalue "(" [Args] ")" ";"
-           |  "if" "(" Expr ")" Statement ["else" Statement]
-           |  "while" "(" Expr ")" Statement
-           |  "System.out.println" "(" [Expr | <STRVAL>] ")" ";"
-           |  "return" [Expr] ";"
-Args       -> Expr {"," Expr}
-InitExpr   -> "new" BasicType "[" <INTVAL> "]"
-           |  "new" <ID> "(" [Args] ")"
-           |  Expr
-Expr       -> Expr "||" AndExpr
-           |  AndExpr
-AndExpr    -> AndExpr "&&" RelExpr
-           |  RelExpr
-RelExpr    -> RelExpr Relop ArithExpr
-           |  ArithExpr
-ArithExpr  -> ArithExpr "+" Term
-           |  ArithExpr "-" Term
-           |  Term
-Term       -> Term "*" Factor
-           |  Term "/" Factor
-           |  Factor
-Factor     -> Unop Factor
-           |  "(" Expr ")"
-           |  Lvalue "(" [Args] ")"
-           |  Lvalue "." "length" "(" ")"
-           |  Lvalue
-           |  Literal
-Lvalue     -> ["this" "."] <ID> {"." <ID>} ["[" Expr "]"]
-Literal    -> <INTVAL> | <FLOATVAL> | "true" | "false"
-Relop      -> "==" | "!=" | "<" | "<=" | ">" | ">="
-Unop       -> "-" | "!"
+Program          -> ClassDecl {ClassDecl}
+ClassDecl        -> "class" <ID> ["extends" <ID>] "{" {VarDecl} {MethodPre} "}"
+MethodPre        -> "public" MethodDecl
+MethodDecl       -> Type <ID> "(" [Formals] ")" MethodBody
+                 |  "void" <ID> "(" [Formals] ")" MethodBody
+                 |  "static" "void" "main" "(" "String" "[" "]" <ID> ")" 
+                          MethodBody
+MethodBody       -> "{" {VarDecl} {Statement} "}"
+Formals          -> Type <ID> {"," Type <ID>}
+VarDecl          -> Type <ID> ["=" InitExpr] ";"
+Type             -> BasicType ["[" "]"] | <ID>
+BasicType        -> "int" | "float" | "boolean"
+Statement        -> "{" {Statement} "}"
+                 |  Lvalue Lvalue_Statement
+                 |  "if" "(" Expr ")" Statement ["else" Statement]
+                 |  "while" "(" Expr ")" Statement
+                 |  "System.out.println" "(" [Expr | <STRVAL>] ")" ";"
+                 |  "return" [Expr] ";"
+Lvalue_Statement -> "=" InitExpr ";"
+                 |  "(" [Args] ")" ";"
+Args             -> Expr {"," Expr}
+InitExpr         -> "new" NewInitExpr
+                 |  Expr
+NewInitExpr      -> BasicType "[" <INTVAL> "]"
+                 |  <ID> "(" [Args] ")"
+Expr             -> AndExpr OrTail
+OrTail           -> ["||" AndExpr OrTail]
+AndExpr          -> RelExpr AndTail
+AndTail          -> ["&&" RelExpr AndTail]
+RelExpr          -> ArithExpr RelTail
+RelTail          -> [Relop ArithExpr]
+ArithExpr        -> Term ArithTail
+ArithTail        -> [ Add Term ArithTail ]
+Add              -> "+" | "-"
+Term             -> Factor TermTail
+TermTail         -> [ Mult Factor TermTail ]
+Mult             -> "*" | "/"
+Factor           -> Unop Factor
+                 |  "(" Expr ")"
+                 |  Lvalue [Lval_Factor]
+                 |  Literal
+Lval_Factor      -> "(" [Args] ")"
+                 |  "." "length" "(" ")"
+Lvalue           -> ["this" "."] <ID> {"." <ID>} ["[" Expr "]"]
+Literal          -> <INTVAL> | <FLOATVAL> | "true" | "false"
+Relop            -> "==" | "!=" | "<" | "<=" | ">" | ">="
+Unop             -> "-" | "!"
