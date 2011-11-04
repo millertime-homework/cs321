@@ -281,10 +281,11 @@ Exp Lvalue_Statement() :
 }
 
 //Args       -> Expr {"," Expr}
-void Args() :
-{}
+ExpList Args() :
+{ ExpList el = new ExpList(); Exp e; }
 {
-    Expr() ( <COMMA> Expr() )*
+    e=Expr() { el.add(e); } ( <COMMA> e=Expr() { el.add(e); } )*
+    { return el; }
 }
 
 //InitExpr   -> "new" NewInitExpr
@@ -302,13 +303,13 @@ Exp InitExpr() :
 //NewInitExpr   -> BasicType "[" <INTVAL> "]"
 //              |  <ID> "(" [Args] ")"
 Exp NewInitExpr() :
-{ Type t; Token tkn; }
+{ Type t; Token tkn; ExpList el; }
 {
     t=BasicType() <LEFT_BRACKET> tkn=<INTVAL> <RIGHT_BRACKET>
     { return new NewArray(t, Integer.parseInt(tkn.toString())); }
 |
-    <ID> <LEFT_PAREN> [ Args() ] <RIGHT_PAREN>
-    { return new NewObj(); }
+    tkn=<ID> <LEFT_PAREN> [ el=Args() ] <RIGHT_PAREN>
+    { return new NewObj(new Id(tkn.toString()), el); }
 }
 
 //Expr       -> AndExpr OrTail
@@ -405,12 +406,14 @@ void Mult() :
 //           |  "(" Expr ")"
 //           |  Lvalue [Lval_Factor]
 //           |  Literal
-void Factor() :
-{}
+Exp Factor() :
+{ int op; Exp e = null; }
 {
-    Unop() Factor()
+    op=Unop() e=Factor()
+    { return Unop(op, e); }
 |
-    <LEFT_PAREN> Expr() <RIGHT_PAREN>
+    <LEFT_PAREN> e=Expr() <RIGHT_PAREN>
+    { return e; }
 |
     Lvalue() [ Lval_Factor() ]
 |
@@ -451,8 +454,8 @@ void Relop() :
 }
 
 //Unop       -> "-" | "!"
-void Unop() :
+int Unop() :
 {}
 {
-    <MINUS> | <NOT>
+    <MINUS> { return Unop.NEG; } | <NOT> { return Unop.NOT; }
 }
