@@ -1,3 +1,4 @@
+*.swp
 syllabus.pdf
 javacc-5.0
 class_slides
@@ -22,3 +23,12 @@ proj2/parser0/miniParser0Constants.java
 proj2/parser0/miniParser0TokenManager.java
 proj2/tst/*.perr
 test_lexer
+proj3/parser/*.class
+proj3/ast/*.class
+proj3/parser/ParseException.java
+proj3/parser/SimpleCharStream.java
+proj3/parser/Token.java
+proj3/parser/TokenMgrError.java
+proj3/parser/miniParser.java
+proj3/parser/miniParserConstants.java
+proj3/parser/miniParserTokenManager.java
