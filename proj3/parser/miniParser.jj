@@ -128,7 +128,9 @@ SKIP :
 
 //Program    -> ClassDecl {ClassDecl}
 Program Program() :
-{ ClassDecl c; ClassDeclList cl = new ClassDeclList(); }
+{ 
+    ClassDecl c; ClassDeclList cl = new ClassDeclList(); 
+}
 {
     c=ClassDecl() { cl.add(c); } ( c=ClassDecl() {cl.add(c); } )* <EOF>
     { return new Program(cl); }
@@ -136,10 +138,12 @@ Program Program() :
 
 //ClassDecl  -> "class" <ID> ["extends" <ID>] "{" {VarDecl} {MethodPre} "}"
 ClassDecl ClassDecl() :
-{ Token cit, pit;
-  Id ci, pi = new Id(""); VarDecl v; MethodDecl m;
-  VarDeclList vl = new VarDeclList(); 
-  MethodDeclList ml = new MethodDeclList(); }
+{ 
+    Token cit, pit;
+    Id ci, pi = null; VarDecl v; MethodDecl m;
+    VarDeclList vl = new VarDeclList(); 
+    MethodDeclList ml = new MethodDeclList(); 
+}
 {
     <CLASS> cit=<ID> { ci = new Id(cit.toString()); } 
         [ <EXTENDS> pit=<ID> { pi = new Id(pit.toString()); } ] 
@@ -150,7 +154,9 @@ ClassDecl ClassDecl() :
 
 //MethodPre  -> "public" MethodDecl
 MethodDecl MethodPre() :
-{ MethodDecl m; }
+{ 
+    MethodDecl m; 
+}
 {
     <PUBLIC> m=MethodDecl()
     { return m; }
@@ -161,9 +167,11 @@ MethodDecl MethodPre() :
 //           |  "static" "void" "main" "(" "String" "[" "]" <ID> ")" 
 //                 MethodBody
 MethodDecl MethodDecl() :
-{ Type t; Id i = new Id(""); Token tkn;
-  FormalList fl = null; VarDeclList vl; 
-  StmtList sl; MethodDecl m; }
+{ 
+    Type t; Id i = new Id(""); Token tkn;
+    FormalList fl = null; VarDeclList vl; 
+    StmtList sl; MethodDecl m; 
+}
 {
     t=Type() tkn=<ID> <LEFT_PAREN> [ fl=Formals() ] <RIGHT_PAREN> m=MethodBody()
     { i = new Id(tkn.toString());
@@ -188,10 +196,12 @@ MethodDecl MethodDecl() :
 // Use a MethodDecl with null placeholders as a temporary container
 // to copy the VarDeclList and StmtList to the real MethodDecl
 MethodDecl MethodBody() :
-{ Type t = null; Id i = null; FormalList fl = null; 
-  VarDeclList vl = new VarDeclList();
-  StmtList sl = new StmtList();
-  VarDecl v; Stmt s; }
+{ 
+    Type t = null; Id i = null; FormalList fl = null; 
+    VarDeclList vl = new VarDeclList();
+    StmtList sl = new StmtList();
+    VarDecl v; Stmt s; 
+}
 {
     <LEFT_BRACE> ( LOOKAHEAD(2) v=VarDecl() { vl.add(v); } )* 
         ( s=Statement() { sl.add(s); } )* <RIGHT_BRACE>
@@ -200,8 +210,10 @@ MethodDecl MethodBody() :
 
 //Formals    -> Type <ID> {"," Type <ID>}
 FormalList Formals() :
-{ FormalList fl = new FormalList(); 
-  Formal f; Token tkn; Type t; Id i; }
+{ 
+    FormalList fl = new FormalList(); 
+    Formal f; Token tkn; Type t; Id i; 
+}
 {
     t=Type() tkn=<ID> 
         { i = new Id(tkn.toString()); f = new Formal(t, i);
@@ -214,7 +226,9 @@ FormalList Formals() :
 
 //VarDecl    -> Type <ID> ["=" InitExpr] ";"
 VarDecl VarDecl() :
-{ Type t; Id i; Token tkn; Exp e = null; }
+{ 
+    Type t; Id i; Token tkn; Exp e = null; 
+}
 {
     t=Type() tkn=<ID> [ <ASSIGNMENT> e=InitExpr() ] <SEMICOLON>
     { return new VarDecl(t, new Id(tkn.toString()), e); }
@@ -222,7 +236,9 @@ VarDecl VarDecl() :
 
 //Type       -> BasicType ["[" "]"] | <ID>
 Type Type() :
-{ Type t; Token tkn; }
+{ 
+    Type t; Token tkn; 
+}
 {
     t=BasicType() [ <LEFT_BRACKET> <RIGHT_BRACKET> ] { return t; }
 |
@@ -247,17 +263,23 @@ Type BasicType() :
 //           |  "System.out.println" "(" [Expr | <STRVAL>] ")" ";"
 //           |  "return" [Expr] ";"
 Stmt Statement() :
-{ Stmt s = null; Exp e1 = null; Exp e2 = null;
-  Stmt s1 = null; Stmt s2 = null; }
+{ 
+    Stmt s = null; Exp e1 = null; Exp e2 = null;
+    Stmt s1 = null; Stmt s2 = null; 
+    ExpList el;
+}
 {
     <LEFT_BRACE> ( s=Statement() )* <RIGHT_BRACE>
     { return s; }
 |
-    e1=Lvalue() e2=Lvalue_Statement()
-    { return new Assign(e1, e2); }
+    el=Lvalue() (<ASSIGNMENT> e2=InitExpr() <SEMICOLON> 
+            { return new Assign(e1, e2); }  
+        | <LEFT_PAREN> [ el=Args() ] <RIGHT_PAREN> <SEMICOLON>
+            { return new CallStmt(e1, el); }
+        )
 |
-    <IF> <LEFT_PAREN> e1=Expr() <RIGHT_PAREN> s1=Statement() [ LOOKAHEAD(1)
-        <ELSE> s2=Statement() ]
+    <IF> <LEFT_PAREN> e1=Expr() <RIGHT_PAREN> s1=Statement() 
+        [ LOOKAHEAD(1) <ELSE> s2=Statement() ]
     { return new If(e1, s1, s2); }
 |
     <PRINTLN> <LEFT_PAREN> [ e1=Expr() | <STRING_LITERAL> ] <RIGHT_PAREN> <SEMICOLON>
@@ -268,16 +290,6 @@ Stmt Statement() :
 |
     <RETURN> [ e1=Expr() ] <SEMICOLON>
     { return new Return(e1); }
-}
-
-//Lvalue_Statement -> "=" InitExpr ";"
-//                 |  "(" [Args] ")" ";"
-Exp Lvalue_Statement() :
-{}
-{
-    <ASSIGNMENT> InitExpr() <SEMICOLON>
-|
-    <LEFT_PAREN> [ Args() ] <RIGHT_PAREN> <SEMICOLON>
 }
 
 //Args       -> Expr {"," Expr}
@@ -330,9 +342,10 @@ Exp OrTail(Exp e0) :
 
 //AndExpr    -> RelExpr AndTail
 Exp AndExpr() :
-{}
+{ Exp e1 = null, e2 = null; }
 {
-    RelExpr() AndTail()
+    e1=RelExpr() e2=AndTail()
+    { return e2==null ? e1 : e2; }
 }
 
 //AndTail   -> ["&&" RelExpr AndTail]
@@ -431,11 +444,17 @@ void Lval_Factor() :
 }
 
 //Lvalue     -> ["this" "."] <ID> {"." <ID>} ["[" Expr "]"]
-Exp Lvalue() :
-{}
+ExpList Lvalue() :
+{ 
+    ExpList el = new ExpList();
+    Token tkn; Exp e;
+}  
 {
-    [ <THIS> <PERIOD> ] <ID> ( LOOKAHEAD(2) <PERIOD> <ID> )* [ <LEFT_BRACKET> Expr() 
-                                                  <RIGHT_BRACKET> ]
+    [ <THIS> <PERIOD> { el.add(new This()); } ] 
+        tkn=<ID> { el.add(new Id(tkn.toString())); } 
+        ( LOOKAHEAD(2) <PERIOD> <ID> )* [ <LEFT_BRACKET> e=Expr() 
+        { el.add(e); } <RIGHT_BRACKET> ]
+    { return el; }
 }
 
 //Literal    -> <INTVAL> | <FLOATVAL> | "true" | "false"
