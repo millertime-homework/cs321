@@ -23,7 +23,7 @@ TOKEN :
 | <FLOAT: "float">
 | <IF: "if">
 | <INT: "int">
-| <LENGTH: "length"> 
+| <LENGTH: "length">
 | <MAIN: "main">
 | <NEW: "new">
 | <PUBLIC: "public">
@@ -123,7 +123,7 @@ SKIP :
 }
 
 /********************************************
- Parser Production Specification Begins Here 
+ Parser Production Specification Begins Here
 *********************************************/
 
 //Program    -> ClassDecl {ClassDecl}
@@ -147,7 +147,7 @@ ClassDecl ClassDecl() :
 {
     <CLASS> cit=<ID> { ci = new Id(cit.toString()); }
         [ <EXTENDS> pit=<ID> { pi = new Id(pit.toString()); } ]
-        <LEFT_BRACE> ( v=VarDecl() { vl.add(v); } )* 
+        <LEFT_BRACE> ( v=VarDecl() { vl.add(v); } )*
         ( m=MethodDecl() { ml.add(m); } )* <RIGHT_BRACE>
     { return new ClassDecl(ci, pi, vl, ml); }
 }
@@ -155,12 +155,12 @@ ClassDecl ClassDecl() :
 MethodDecl MethodDecl() :
 {
     Type t; Id i = new Id(""); Token tkn;
-    FormalList fl = null; VarDeclList vl; 
-    StmtList sl; MethodDecl m; 
+    FormalList fl = null; VarDeclList vl;
+    StmtList sl; MethodDecl m;
 }
 {
     <PUBLIC> ( t=Type() tkn=<ID> <LEFT_PAREN> [ fl=Formals() ] <RIGHT_PAREN>
-        m=MethodBody() 
+        m=MethodBody()
         { i = new Id(tkn.toString());
           return new MethodDecl(t, i, fl, m.vl, m.sl); }
         | <VOID> tkn=<ID> <LEFT_PAREN> [ fl=Formals() ] <RIGHT_PAREN>
@@ -168,7 +168,7 @@ MethodDecl MethodDecl() :
         { t = new ObjType(new Id("void"));
           i = new Id(tkn.toString());
           return new MethodDecl(t, i, fl, m.vl, m.sl); }
-        | <STATIC> <VOID> <MAIN> <LEFT_PAREN> <STRING> <LEFT_BRACKET> 
+        | <STATIC> <VOID> <MAIN> <LEFT_PAREN> <STRING> <LEFT_BRACKET>
         <RIGHT_BRACKET> tkn=<ID> <RIGHT_PAREN> m=MethodBody()
         { t = new ObjType(new Id("void"));
           i = new Id("main");
@@ -182,29 +182,29 @@ MethodDecl MethodDecl() :
 // Use a MethodDecl with null placeholders as a temporary container
 // to copy the VarDeclList and StmtList to the real MethodDecl
 MethodDecl MethodBody() :
-{ 
-    Type t = null; Id i = null; FormalList fl = null; 
+{
+    Type t = null; Id i = null; FormalList fl = null;
     VarDeclList vl = new VarDeclList();
     StmtList sl = new StmtList();
     VarDecl v; Stmt s;
 }
 {
-    <LEFT_BRACE> ( LOOKAHEAD(2) v=VarDecl() { vl.add(v); } )* 
+    <LEFT_BRACE> ( LOOKAHEAD(2) v=VarDecl() { vl.add(v); } )*
         ( s=Statement() { sl.add(s); } )* <RIGHT_BRACE>
     { return new MethodDecl(t, i, fl, vl, sl); }
 }
 
 //Formals    -> Type <ID> {"," Type <ID>}
 FormalList Formals() :
-{ 
-    FormalList fl = new FormalList(); 
-    Formal f; Token tkn; Type t; Id i; 
+{
+    FormalList fl = new FormalList();
+    Formal f; Token tkn; Type t; Id i;
 }
 {
-    t=Type() tkn=<ID> 
+    t=Type() tkn=<ID>
         { i = new Id(tkn.toString()); f = new Formal(t, i);
-          fl.add(f); } 
-        ( <COMMA> t=Type() tkn=<ID> 
+          fl.add(f); }
+        ( <COMMA> t=Type() tkn=<ID>
             { i = new Id(tkn.toString());
               f = new Formal(t, i); fl.add(f); } )*
     { return fl; }
@@ -212,8 +212,8 @@ FormalList Formals() :
 
 //VarDecl    -> Type <ID> ["=" InitExpr] ";"
 VarDecl VarDecl() :
-{ 
-    Type t; Id i; Token tkn; Exp e = null; 
+{
+    Type t; Id i; Token tkn; Exp e = null;
 }
 {
     t=Type() tkn=<ID> [ <ASSIGNMENT> e=InitExpr() ] <SEMICOLON>
@@ -222,8 +222,8 @@ VarDecl VarDecl() :
 
 //Type       -> BasicType ["[" "]"] | <ID>
 Type Type() :
-{ 
-    Type t; Token tkn; 
+{
+    Type t; Token tkn;
 }
 {
     t=BasicType() [ <LEFT_BRACKET> <RIGHT_BRACKET> ] { return t; }
@@ -249,22 +249,22 @@ Type BasicType() :
 //           |  "System.out.println" "(" [Expr | <STRVAL>] ")" ";"
 //           |  "return" [Expr] ";"
 Stmt Statement() :
-{ 
+{
     Stmt s = null; Exp e1 = null; Exp e2 = null;
-    Stmt s1 = null; Stmt s2 = null; 
+    Stmt s1 = null; Stmt s2 = null;
     ExpList el;
 }
 {
     <LEFT_BRACE> ( s=Statement() )* <RIGHT_BRACE>
     { return s; }
 |
-    el=Lvalue() (<ASSIGNMENT> e2=InitExpr() <SEMICOLON> 
-            { return new Assign(e1, e2); }  
+    el=Lvalue() (<ASSIGNMENT> e2=InitExpr() <SEMICOLON>
+            { return new Assign(e1, e2); }
         | <LEFT_PAREN> [ el=Args() ] <RIGHT_PAREN> <SEMICOLON>
             { return new CallStmt(e1, el); }
         )
 |
-    <IF> <LEFT_PAREN> e1=Expr() <RIGHT_PAREN> s1=Statement() 
+    <IF> <LEFT_PAREN> e1=Expr() <RIGHT_PAREN> s1=Statement()
         [ LOOKAHEAD(1) <ELSE> s2=Statement() ]
     { return new If(e1, s1, s2); }
 |
@@ -431,14 +431,14 @@ void Lval_Factor() :
 
 //Lvalue     -> ["this" "."] <ID> {"." <ID>} ["[" Expr "]"]
 ExpList Lvalue() :
-{ 
+{
     ExpList el = new ExpList();
     Token tkn; Exp e;
-}  
+}
 {
-    [ <THIS> <PERIOD> { el.add(new This()); } ] 
-        tkn=<ID> { el.add(new Id(tkn.toString())); } 
-        ( LOOKAHEAD(2) <PERIOD> <ID> )* [ <LEFT_BRACKET> e=Expr() 
+    [ <THIS> <PERIOD> { el.add(new This()); } ]
+        tkn=<ID> { el.add(new Id(tkn.toString())); }
+        ( LOOKAHEAD(2) <PERIOD> <ID> )* [ <LEFT_BRACKET> e=Expr()
         { el.add(e); } <RIGHT_BRACKET> ]
     { return el; }
 }
