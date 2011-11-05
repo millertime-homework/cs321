@@ -25,6 +25,8 @@ proj2/tst/*.perr
 test_lexer
 proj3/parser/*.class
 proj3/ast/*.class
+proj3/tst/*.ast
+proj3/tst/*.perr
 proj3/parser/ParseException.java
 proj3/parser/SimpleCharStream.java
 proj3/parser/Token.java

@@ -136,7 +136,7 @@ Program Program() :
     { return new Program(cl); }
 }
 
-//ClassDecl  -> "class" <ID> ["extends" <ID>] "{" {VarDecl} {MethodPre} "}"
+//ClassDecl  -> "class" <ID> ["extends" <ID>] "{" {VarDecl} {MethodDecl} "}"
 ClassDecl ClassDecl() :
 {
     Token cit, pit;
@@ -149,49 +149,27 @@ ClassDecl ClassDecl() :
         [ <EXTENDS> pit=<ID> { pi = new Id(pit.toString()); } ]
         <LEFT_BRACE> ( v=VarDecl() { vl.add(v); } )*
         ( m=MethodDecl() { ml.add(m); } )* <RIGHT_BRACE>
-    { return new ClassDecl(ci, pi, vl, ml); }
+        { return new ClassDecl(ci, pi, vl, ml); }
 }
 
+//MethodDecl -> "public" ( (Type | "void") <ID> "(" [Formals] ")"
+//                       | "static" "void" "main" "(" "String" "[" "]" <ID> ")" )
+//              "{" {VarDecl} {Statement} "}"
 MethodDecl MethodDecl() :
 {
-    Type t; Id i = new Id(""); Token tkn;
-    FormalList fl = null; VarDeclList vl;
-    StmtList sl; MethodDecl m;
-}
-{
-    <PUBLIC> ( t=Type() tkn=<ID> <LEFT_PAREN> [ fl=Formals() ] <RIGHT_PAREN>
-        m=MethodBody()
-        { i = new Id(tkn.toString());
-          return new MethodDecl(t, i, fl, m.vl, m.sl); }
-        | <VOID> tkn=<ID> <LEFT_PAREN> [ fl=Formals() ] <RIGHT_PAREN>
-        m=MethodBody()
-        { t = new ObjType(new Id("void"));
-          i = new Id(tkn.toString());
-          return new MethodDecl(t, i, fl, m.vl, m.sl); }
-        | <STATIC> <VOID> <MAIN> <LEFT_PAREN> <STRING> <LEFT_BRACKET>
-        <RIGHT_BRACKET> tkn=<ID> <RIGHT_PAREN> m=MethodBody()
-        { t = new ObjType(new Id("void"));
-          i = new Id("main");
-          Formal f = new Formal(new ObjType(new Id("String")),
-            new Id(tkn.toString()));
-          fl = new FormalList(); fl.add(f);
-          return new MethodDecl(t, i, fl, m.vl, m.sl); }
-}
-
-//MethodBody -> "{" {VarDecl} {Statement} "}"
-// Use a MethodDecl with null placeholders as a temporary container
-// to copy the VarDeclList and StmtList to the real MethodDecl
-MethodDecl MethodBody() :
-{
-    Type t = null; Id i = null; FormalList fl = null;
-    VarDeclList vl = new VarDeclList();
-    StmtList sl = new StmtList();
+    Type t = null; Id i; Token tkn; FormalList fl = new FormalList();
+    VarDeclList vl = new VarDeclList(); StmtList sl = new StmtList();
     VarDecl v; Stmt s;
 }
 {
-    <LEFT_BRACE> ( LOOKAHEAD(2) v=VarDecl() { vl.add(v); } )*
+    <PUBLIC> ( ( t=Type() | <VOID> ) tkn=<ID> { i=new Id(tkn.toString()); }
+        <LEFT_PAREN> [ fl=Formals() ] <RIGHT_PAREN>
+        | <STATIC> <VOID> <MAIN> <LEFT_PAREN> <STRING> <LEFT_BRACKET>
+        <RIGHT_BRACKET> tkn=<ID> <RIGHT_PAREN>
+        { i = new Id("main"); } )
+        <LEFT_BRACE> ( LOOKAHEAD(2) v=VarDecl() { vl.add(v); } )*
         ( s=Statement() { sl.add(s); } )* <RIGHT_BRACE>
-    { return new MethodDecl(t, i, fl, vl, sl); }
+        { return new MethodDecl(t, i, fl, vl, sl); }
 }
 
 //Formals    -> Type <ID> {"," Type <ID>}
@@ -205,15 +183,15 @@ FormalList Formals() :
         { i = new Id(tkn.toString()); f = new Formal(t, i);
           fl.add(f); }
         ( <COMMA> t=Type() tkn=<ID>
-            { i = new Id(tkn.toString());
-              f = new Formal(t, i); fl.add(f); } )*
+          { i = new Id(tkn.toString());
+            f = new Formal(t, i); fl.add(f); } )*
     { return fl; }
 }
 
 //VarDecl    -> Type <ID> ["=" InitExpr] ";"
 VarDecl VarDecl() :
 {
-    Type t; Id i; Token tkn; Exp e = null;
+    Type t; Token tkn; Exp e = null;
 }
 {
     t=Type() tkn=<ID> [ <ASSIGNMENT> e=InitExpr() ] <SEMICOLON>
@@ -226,24 +204,29 @@ Type Type() :
     Type t; Token tkn;
 }
 {
-    t=BasicType() [ <LEFT_BRACKET> <RIGHT_BRACKET> ] { return t; }
+    t=BasicType() [ <LEFT_BRACKET> <RIGHT_BRACKET> ]
+    { return t; }
 |
-    tkn=<ID> { return new ObjType(new Id(tkn.toString())); }
+    tkn=<ID>
+    { return new ObjType(new Id(tkn.toString())); }
 }
 
 //BasicType  -> "int" | "float" | "boolean"
 Type BasicType() :
 {}
 {
-    <INT> { return new BasicType(BasicType.Int); }
+    <INT>
+    { return new BasicType(BasicType.Int); }
 |
-    <FLOAT> { return new BasicType(BasicType.Float); }
+    <FLOAT>
+    { return new BasicType(BasicType.Float); }
 |
-    <BOOLEAN> { return new BasicType(BasicType.Bool); }
+    <BOOLEAN>
+    { return new BasicType(BasicType.Bool); }
 }
 
 //Statement  -> "{" {Statement} "}"
-//           |  Lvalue Lvalue_Statement
+//           |  Lvalue ("=" InitExpr | "(" [Args] ")") ";"
 //           |  "if" "(" Expr ")" Statement ["else" Statement]
 //           |  "while" "(" Expr ")" Statement
 //           |  "System.out.println" "(" [Expr | <STRVAL>] ")" ";"
@@ -251,25 +234,36 @@ Type BasicType() :
 Stmt Statement() :
 {
     Stmt s = null; Exp e1 = null; Exp e2 = null;
-    Stmt s1 = null; Stmt s2 = null;
-    ExpList el;
+    Stmt s1 = null; Stmt s2 = null; Token tkn = null;
+    ExpList el = null; StmtList sl = new StmtList();
+    int assignment = 0;
 }
 {
-    <LEFT_BRACE> ( s=Statement() )* <RIGHT_BRACE>
-    { return s; }
+    <LEFT_BRACE> ( s=Statement() { sl.add(s); } )* <RIGHT_BRACE>
+    { return new Block(sl); }
 |
-    el=Lvalue() (<ASSIGNMENT> e2=InitExpr() <SEMICOLON>
-            { return new Assign(e1, e2); }
-        | <LEFT_PAREN> [ el=Args() ] <RIGHT_PAREN> <SEMICOLON>
-            { return new CallStmt(e1, el); }
-        )
+    e1=Lvalue() ( <ASSIGNMENT> e2=InitExpr() <SEMICOLON>
+            { assignment = 1; }
+        | <LEFT_PAREN> [ el=Args() ] <RIGHT_PAREN> <SEMICOLON> )
+        { if (assignment == 1) {
+              return new Assign(e1, e2);
+          } else {
+              if (e1 instanceof Field) {
+                  Field lval = (Field) e1;
+                  return new CallStmt(lval.obj, lval.var, el);
+              } else {
+                  return null;
+              }
+          }
+        }
 |
     <IF> <LEFT_PAREN> e1=Expr() <RIGHT_PAREN> s1=Statement()
         [ LOOKAHEAD(1) <ELSE> s2=Statement() ]
     { return new If(e1, s1, s2); }
 |
-    <PRINTLN> <LEFT_PAREN> [ e1=Expr() | <STRING_LITERAL> ] <RIGHT_PAREN> <SEMICOLON>
-    { return new Print(e1); }
+    <PRINTLN> <LEFT_PAREN> [ e1=Expr() | tkn=<STRING_LITERAL> ] <RIGHT_PAREN>
+        <SEMICOLON>
+    { return tkn==null ? new Print(e1) : new Print(new StrVal(tkn.toString())); }
 |
     <WHILE> <LEFT_PAREN> e1=Expr() <RIGHT_PAREN> s1=Statement()
     { return new While(e1, s1); }
@@ -280,34 +274,28 @@ Stmt Statement() :
 
 //Args       -> Expr {"," Expr}
 ExpList Args() :
-{ ExpList el = new ExpList(); Exp e; }
+{
+    ExpList el = new ExpList(); Exp e;
+}
 {
     e=Expr() { el.add(e); } ( <COMMA> e=Expr() { el.add(e); } )*
     { return el; }
 }
 
-//InitExpr   -> "new" NewInitExpr
+//InitExpr   -> "new" ( BasicType "[" <INTVAL> "]" | <ID> "(" [Args] ")" )
 //           |  Expr
 Exp InitExpr() :
-{ Exp e; }
 {
-    <NEW> e=NewInitExpr()
-    { return e; }
+    Exp e; Type t; Token tkn; ExpList el = null;
+}
+{
+    <NEW> ( t=BasicType() <LEFT_BRACKET> tkn=<INTVAL> <RIGHT_BRACKET>
+        { return new NewArray(t, Integer.parseInt(tkn.toString())); }
+        | tkn=<ID> <LEFT_PAREN> [ el=Args() ] <RIGHT_PAREN>
+        { return new NewObj(new Id(tkn.toString()), el); } )
 |
     e=Expr()
     { return e; }
-}
-
-//NewInitExpr   -> BasicType "[" <INTVAL> "]"
-//              |  <ID> "(" [Args] ")"
-Exp NewInitExpr() :
-{ Type t; Token tkn; ExpList el; }
-{
-    t=BasicType() <LEFT_BRACKET> tkn=<INTVAL> <RIGHT_BRACKET>
-    { return new NewArray(t, Integer.parseInt(tkn.toString())); }
-|
-    tkn=<ID> <LEFT_PAREN> [ el=Args() ] <RIGHT_PAREN>
-    { return new NewObj(new Id(tkn.toString()), el); }
 }
 
 //Expr       -> AndExpr OrTail
@@ -322,140 +310,161 @@ Exp Expr() :
 Exp OrTail(Exp e0) :
 { Exp e1 = null, e2 = null; }
 {
-    [ <OR> e1=AndExpr() {e1 = new Binop(Binop.OR, e1, e2); } e2=OrTail(e1) ]
+    [ <OR> e1=AndExpr() { e1 = new Binop(Binop.OR, e0, e1); } e2=OrTail(e1) ]
     { return e2==null ? e1 : e2; }
 }
 
 //AndExpr    -> RelExpr AndTail
 Exp AndExpr() :
-{ Exp e1 = null, e2 = null; }
+{ Exp e1, e2 = null; }
 {
-    e1=RelExpr() e2=AndTail()
+    e1=RelExpr() e2=AndTail(e1)
     { return e2==null ? e1 : e2; }
 }
 
 //AndTail   -> ["&&" RelExpr AndTail]
-Exp AndTail() :
-{}
+Exp AndTail(Exp e0) :
+{ Exp e1 = null, e2 = null; }
 {
-    [ <AND> RelExpr() AndTail() ]
+    [ <AND> e1=RelExpr() { e1 = new Binop(Binop.AND, e0, e1); } e2=AndTail(e1) ]
+    { return e2==null ? e1 : e2; }
 }
 
-//RelExpr    -> ArithExpr RelTail
+//RelExpr    -> ArithExpr [Relop ArithExpr]
 Exp RelExpr() :
-{}
+{ Exp e1, e2 = null; int r; }
 {
-    ArithExpr() RelTail()
-}
-
-//RelTail    -> [Relop ArithExpr]
-void RelTail() :
-{}
-{
-    [ Relop() ArithExpr() ]
+    e1=ArithExpr() [ r=Relop() e2=ArithExpr() { e2 = new Relop(r, e1, e2); } ]
+    { return e2==null ? e1 : e2; }
 }
 
 //ArithExpr  -> Term ArithTail
-void ArithExpr() :
-{}
+Exp ArithExpr() :
+{ Exp e1, e2 = null; }
 {
-    Term() ArithTail()
+    e1=Term() e2=ArithTail(e1)
+    { return e2==null ? e1 : e2; }
 }
 
 //ArithTail  -> [ Add Term ArithTail ]
-void ArithTail() :
-{}
+Exp ArithTail(Exp e0) :
+{ Exp e1 = null, e2 = null; int a; }
 {
-    [ Add() Term() ArithTail() ]
+    [ a=Add() e1=Term() { e1 = new Binop(a, e0, e1); } e2=ArithTail(e1) ]
+    { return e2==null ? e1 : e2; }
 }
 
 //Add        -> "+" | "-"
-void Add() :
+int Add() :
 {}
 {
-    <PLUS>
+    <PLUS> { return Binop.ADD; }
 |
-    <MINUS>
+    <MINUS> { return Binop.SUB; }
 }
 
 //Term       -> Factor TermTail
-void Term() :
-{}
+Exp Term() :
+{ Exp e1, e2 = null; }
 {
-    Factor() TermTail()
+    e1=Factor() e2=TermTail(e1)
+    { return e2==null ? e1 : e2; }
 }
 
 //TermTail   -> [ Mult Factor TermTail ]
-void TermTail() :
-{}
+Exp TermTail(Exp e0) :
+{ Exp e1 = null, e2 = null; int m; }
 {
-    [ Mult() Factor() TermTail() ]
+    [ m=Mult() e1=Factor() { e1 = new Binop(m, e0, e1); } e2=TermTail(e1) ]
+    { return e2==null ? e1 : e2; }
 }
 
 //Mult       -> "*" | "/"
-void Mult() :
+int Mult() :
 {}
 {
-    <MULTIPLY>
+    <MULTIPLY> { return Binop.MUL; }
 |
-    <DIVIDE>
+    <DIVIDE> { return Binop.DIV; }
 }
 
 //Factor     -> Unop Factor
 //           |  "(" Expr ")"
-//           |  Lvalue [Lval_Factor]
+//           |  Lvalue ["." "length" "(" ")" | "(" [Args] ")"]
 //           |  Literal
 Exp Factor() :
-{ int op; Exp e = null; }
+{
+    int op; Exp e = null; ExpList el = null; 
+    int arraylength = 0;
+}
 {
     op=Unop() e=Factor()
-    { return Unop(op, e); }
+    { return new Unop(op, e); }
 |
     <LEFT_PAREN> e=Expr() <RIGHT_PAREN>
     { return e; }
 |
-    Lvalue() [ Lval_Factor() ]
+    e=Lvalue() [ <PERIOD> <LENGTH> <LEFT_PAREN> <RIGHT_PAREN>
+               { arraylength = 1; }
+             | <LEFT_PAREN> [ el=Args() ] <RIGHT_PAREN> ]
+             { if (arraylength == 1) {
+                   return new ArrayLen(e);
+               } else {
+                   if (e instanceof Field) {
+                       Field lval = (Field) e;
+                       return new Call(lval.obj, lval.var, el);
+                   } else {
+                       return e;
+                   }
+               }
+             }
 |
-    Literal()
-}
-
-//Lval_Factor -> "(" [Args] ")"
-//            |  "." "length" "(" ")"
-void Lval_Factor() :
-{}
-{
-    <LEFT_PAREN> [ Args() ] <RIGHT_PAREN>
-|
-    <PERIOD> <LENGTH> <LEFT_PAREN> <RIGHT_PAREN>
+    e=Literal()
+    { return e; }
 }
 
 //Lvalue     -> ["this" "."] <ID> {"." <ID>} ["[" Expr "]"]
-ExpList Lvalue() :
+Exp Lvalue() :
 {
-    ExpList el = new ExpList();
-    Token tkn; Exp e;
+    This th = null; Id i1 = null; Id i2 = null; Token tkn; Exp e = null;
 }
 {
-    [ <THIS> <PERIOD> { el.add(new This()); } ]
-        tkn=<ID> { el.add(new Id(tkn.toString())); }
-        ( LOOKAHEAD(2) <PERIOD> <ID> )* [ <LEFT_BRACKET> e=Expr()
-        { el.add(e); } <RIGHT_BRACKET> ]
-    { return el; }
+    [ <THIS> <PERIOD> { th = new This(); } ]
+        tkn=<ID> { i1 = new Id(tkn.toString()); }
+        [ LOOKAHEAD(2) <PERIOD> tkn=<ID> {i2 = new Id(tkn.toString()); } ]
+        [ <LEFT_BRACKET> e=Expr() <RIGHT_BRACKET> ]
+    { if ( e != null) {
+          return new ArrayElm(new Id(tkn.toString()), e);
+      } else if (th != null) {
+          return new Field(th, i1);
+      } else if (i2 != null) {
+          return new Field(i1, i2);
+      } else {
+          return i1;
+      }
+    }
 }
 
 //Literal    -> <INTVAL> | <FLOATVAL> | "true" | "false"
-void Literal() :
-{}
+Exp Literal() :
+{ Token tkn; }
 {
-    <INTVAL> | <REAL> | <TRUE> | <FALSE>
+    tkn=<INTVAL> { return new IntVal(Integer.parseInt(tkn.toString())); }
+    | tkn=<REAL> { return new FloatVal(Float.parseFloat(tkn.toString())); }
+    | tkn=<TRUE> { return new BoolVal(Boolean.parseBoolean(tkn.toString())); }
+    | tkn=<FALSE> { return new BoolVal(Boolean.parseBoolean(tkn.toString())); }
 }
 
 //Relop      -> "==" | "!=" | "<" | "<=" | ">" | ">="
-void Relop() :
+int Relop() :
 {}
 {
-    <EQUALS> | <NOT_EQUALS> | <LESS_THAN> | <LESS_THAN_OR_EQUAL> |
-        <GREATER_THAN> | <GREATER_THAN_OR_EQUAL>
+    <EQUALS> { return Relop.EQ; }
+    | <NOT_EQUALS> { return Relop.NE; }
+    | <LESS_THAN> { return Relop.LT; }
+    | <LESS_THAN_OR_EQUAL> { return Relop.LE; }
+    | <GREATER_THAN> { return Relop.GT; }
+    | <GREATER_THAN_OR_EQUAL> { return Relop.GE; }
 }
 
 //Unop       -> "-" | "!"
