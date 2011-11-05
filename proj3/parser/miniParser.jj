@@ -164,7 +164,8 @@ MethodDecl MethodDecl() :
 {
     <PUBLIC> ( ( t=Type() | <VOID> ) tkn=<ID> { i=new Id(tkn.toString()); }
         <LEFT_PAREN> [ fl=Formals() ] <RIGHT_PAREN>
-        | <STATIC> <VOID> <MAIN> <LEFT_PAREN> <STRING> <LEFT_BRACKET>
+        |
+        <STATIC> <VOID> <MAIN> <LEFT_PAREN> <STRING> <LEFT_BRACKET>
         <RIGHT_BRACKET> tkn=<ID> <RIGHT_PAREN>
         { i = new Id("main"); } )
         <LEFT_BRACE> ( LOOKAHEAD(2) v=VarDecl() { vl.add(v); } )*
@@ -201,11 +202,14 @@ VarDecl VarDecl() :
 //Type       -> BasicType ["[" "]"] | <ID>
 Type Type() :
 {
-    Type t; Token tkn;
+    Type t; Token tkn; int array = 0;
 }
 {
-    t=BasicType() [ <LEFT_BRACKET> <RIGHT_BRACKET> ]
-    { return t; }
+    t=BasicType() [ <LEFT_BRACKET> <RIGHT_BRACKET> { array = 1; } ]
+    { if (array == 0)
+        return t;
+      else
+        return new ArrayType(t); }
 |
     tkn=<ID>
     { return new ObjType(new Id(tkn.toString())); }
@@ -251,6 +255,9 @@ Stmt Statement() :
               if (e1 instanceof Field) {
                   Field lval = (Field) e1;
                   return new CallStmt(lval.obj, lval.var, el);
+              } else if (e1 instanceof Id) {
+                  Id idlval = (Id) e1;
+                  return new CallStmt(new This(), idlval, el);
               } else {
                   return null;
               }
@@ -263,7 +270,8 @@ Stmt Statement() :
 |
     <PRINTLN> <LEFT_PAREN> [ e1=Expr() | tkn=<STRING_LITERAL> ] <RIGHT_PAREN>
         <SEMICOLON>
-    { return tkn==null ? new Print(e1) : new Print(new StrVal(tkn.toString())); }
+    { return tkn==null ? new Print(e1) :
+        new Print(new StrVal((tkn.image).replace("\"",""))); }
 |
     <WHILE> <LEFT_PAREN> e1=Expr() <RIGHT_PAREN> s1=Statement()
     { return new While(e1, s1); }
@@ -286,13 +294,18 @@ ExpList Args() :
 //           |  Expr
 Exp InitExpr() :
 {
-    Exp e; Type t; Token tkn; ExpList el = null;
+    Exp e; Type t = null; Token tkn; ExpList el = null; int array = 0;
 }
 {
     <NEW> ( t=BasicType() <LEFT_BRACKET> tkn=<INTVAL> <RIGHT_BRACKET>
-        { return new NewArray(t, Integer.parseInt(tkn.toString())); }
-        | tkn=<ID> <LEFT_PAREN> [ el=Args() ] <RIGHT_PAREN>
-        { return new NewObj(new Id(tkn.toString()), el); } )
+        { array = 1; }
+        |
+        tkn=<ID> <LEFT_PAREN> [ el=Args() ] <RIGHT_PAREN> )
+        { if (array == 1)
+            return new NewArray(t, Integer.parseInt(tkn.toString()));
+          else
+            return new NewObj(new Id(tkn.toString()), el);
+        }
 |
     e=Expr()
     { return e; }
@@ -394,8 +407,8 @@ int Mult() :
 //           |  Literal
 Exp Factor() :
 {
-    int op; Exp e = null; ExpList el = null; 
-    int arraylength = 0;
+    int op; Exp e = null; ExpList el = null;
+    int arraylength = 0; int call = 0;
 }
 {
     op=Unop() e=Factor()
@@ -406,16 +419,22 @@ Exp Factor() :
 |
     e=Lvalue() [ <PERIOD> <LENGTH> <LEFT_PAREN> <RIGHT_PAREN>
                { arraylength = 1; }
-             | <LEFT_PAREN> [ el=Args() ] <RIGHT_PAREN> ]
+             | <LEFT_PAREN> [ el=Args() ] <RIGHT_PAREN>
+               { call = 1; } ]
              { if (arraylength == 1) {
                    return new ArrayLen(e);
-               } else {
+               } else if (call == 1) {
                    if (e instanceof Field) {
                        Field lval = (Field) e;
                        return new Call(lval.obj, lval.var, el);
+                   } else  if (e instanceof Id) {
+                       Id idLval = (Id) e;
+                       return new Call(new This(), idLval, el);
                    } else {
-                       return e;
+                       return null;
                    }
+               } else {
+                   return e;
                }
              }
 |
@@ -426,23 +445,31 @@ Exp Factor() :
 //Lvalue     -> ["this" "."] <ID> {"." <ID>} ["[" Expr "]"]
 Exp Lvalue() :
 {
-    This th = null; Id i1 = null; Id i2 = null; Token tkn; Exp e = null;
+    Id i = null; Token tkn; Exp e = null; Field f = null; int haz_dis = 0;
 }
 {
-    [ <THIS> <PERIOD> { th = new This(); } ]
-        tkn=<ID> { i1 = new Id(tkn.toString()); }
-        [ LOOKAHEAD(2) <PERIOD> tkn=<ID> {i2 = new Id(tkn.toString()); } ]
+    [ <THIS> <PERIOD> { haz_dis = 1; } ] tkn=<ID>
+        { if (haz_dis==0)
+              i = new Id(tkn.image);
+          else
+              f = new Field(new This(), new Id(tkn.image)); }
+        ( LOOKAHEAD(2) <PERIOD> tkn=<ID>
+        { if (f==null)
+              f = new Field(i, new Id(tkn.image));
+          else
+              f = new Field(f, new Id(tkn.image)); } )*
         [ <LEFT_BRACKET> e=Expr() <RIGHT_BRACKET> ]
-    { if ( e != null) {
-          return new ArrayElm(new Id(tkn.toString()), e);
-      } else if (th != null) {
-          return new Field(th, i1);
-      } else if (i2 != null) {
-          return new Field(i1, i2);
-      } else {
-          return i1;
-      }
-    }
+        { if ( e != null) {
+              if (f != null) {
+                  return new ArrayElm(f, e);
+              } else {
+                  return new ArrayElm(i, e);
+              }
+         } else if (f != null)
+              return f;
+          else
+              return i;
+        }
 }
 
 //Literal    -> <INTVAL> | <FLOATVAL> | "true" | "false"
