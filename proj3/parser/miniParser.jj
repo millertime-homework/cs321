@@ -9,7 +9,7 @@ public class miniParser {
 PARSER_END(miniParser)
 
 /**************************************
- Lexer Token Specification Begins Here 
+ Lexer Token Specification Begins Here
 ***************************************/
 
 /* RESERVED WORDS */
@@ -108,7 +108,7 @@ SKIP :
   " "
 | "\t"
 | "\n"
-| "\r" 
+| "\r"
 }
 
 /* COMMENTS */
@@ -128,8 +128,8 @@ SKIP :
 
 //Program    -> ClassDecl {ClassDecl}
 Program Program() :
-{ 
-    ClassDecl c; ClassDeclList cl = new ClassDeclList(); 
+{
+    ClassDecl c; ClassDeclList cl = new ClassDeclList();
 }
 {
     c=ClassDecl() { cl.add(c); } ( c=ClassDecl() {cl.add(c); } )* <EOF>
@@ -138,58 +138,44 @@ Program Program() :
 
 //ClassDecl  -> "class" <ID> ["extends" <ID>] "{" {VarDecl} {MethodPre} "}"
 ClassDecl ClassDecl() :
-{ 
+{
     Token cit, pit;
     Id ci, pi = null; VarDecl v; MethodDecl m;
-    VarDeclList vl = new VarDeclList(); 
-    MethodDeclList ml = new MethodDeclList(); 
+    VarDeclList vl = new VarDeclList();
+    MethodDeclList ml = new MethodDeclList();
 }
 {
-    <CLASS> cit=<ID> { ci = new Id(cit.toString()); } 
-        [ <EXTENDS> pit=<ID> { pi = new Id(pit.toString()); } ] 
+    <CLASS> cit=<ID> { ci = new Id(cit.toString()); }
+        [ <EXTENDS> pit=<ID> { pi = new Id(pit.toString()); } ]
         <LEFT_BRACE> ( v=VarDecl() { vl.add(v); } )* 
-        ( m=MethodPre() { ml.add(m); } )* <RIGHT_BRACE>
+        ( m=MethodDecl() { ml.add(m); } )* <RIGHT_BRACE>
     { return new ClassDecl(ci, pi, vl, ml); }
 }
 
-//MethodPre  -> "public" MethodDecl
-MethodDecl MethodPre() :
-{ 
-    MethodDecl m; 
-}
-{
-    <PUBLIC> m=MethodDecl()
-    { return m; }
-}
-
-//MethodDecl -> Type <ID> "(" [Formals] ")" MethodBody
-//           |  "void" <ID> "(" [Formals] ")" MethodBody
-//           |  "static" "void" "main" "(" "String" "[" "]" <ID> ")" 
-//                 MethodBody
 MethodDecl MethodDecl() :
-{ 
+{
     Type t; Id i = new Id(""); Token tkn;
     FormalList fl = null; VarDeclList vl; 
     StmtList sl; MethodDecl m; 
 }
 {
-    t=Type() tkn=<ID> <LEFT_PAREN> [ fl=Formals() ] <RIGHT_PAREN> m=MethodBody()
-    { i = new Id(tkn.toString());
-      return new MethodDecl(t, i, fl, m.vl, m.sl); }
-|
-    <VOID> tkn=<ID> <LEFT_PAREN> [ fl=Formals() ] <RIGHT_PAREN> m=MethodBody()
-    { t = new ObjType(new Id("void"));
-      i = new Id(tkn.toString());
-      return new MethodDecl(t, i, fl, m.vl, m.sl); }
-|
-    <STATIC> <VOID> <MAIN> <LEFT_PAREN> <STRING> <LEFT_BRACKET> 
+    <PUBLIC> ( t=Type() tkn=<ID> <LEFT_PAREN> [ fl=Formals() ] <RIGHT_PAREN>
+        m=MethodBody() 
+        { i = new Id(tkn.toString());
+          return new MethodDecl(t, i, fl, m.vl, m.sl); }
+        | <VOID> tkn=<ID> <LEFT_PAREN> [ fl=Formals() ] <RIGHT_PAREN>
+        m=MethodBody()
+        { t = new ObjType(new Id("void"));
+          i = new Id(tkn.toString());
+          return new MethodDecl(t, i, fl, m.vl, m.sl); }
+        | <STATIC> <VOID> <MAIN> <LEFT_PAREN> <STRING> <LEFT_BRACKET> 
         <RIGHT_BRACKET> tkn=<ID> <RIGHT_PAREN> m=MethodBody()
-    { t = new ObjType(new Id("void"));
-      i = new Id("main"); 
-      Formal f = new Formal(new ObjType(new Id("String")), 
-        new Id(tkn.toString()));
-      fl = new FormalList(); fl.add(f);
-      return new MethodDecl(t, i, fl, m.vl, m.sl); }
+        { t = new ObjType(new Id("void"));
+          i = new Id("main");
+          Formal f = new Formal(new ObjType(new Id("String")),
+            new Id(tkn.toString()));
+          fl = new FormalList(); fl.add(f);
+          return new MethodDecl(t, i, fl, m.vl, m.sl); }
 }
 
 //MethodBody -> "{" {VarDecl} {Statement} "}"
@@ -200,7 +186,7 @@ MethodDecl MethodBody() :
     Type t = null; Id i = null; FormalList fl = null; 
     VarDeclList vl = new VarDeclList();
     StmtList sl = new StmtList();
-    VarDecl v; Stmt s; 
+    VarDecl v; Stmt s;
 }
 {
     <LEFT_BRACE> ( LOOKAHEAD(2) v=VarDecl() { vl.add(v); } )* 
