@@ -1,0 +1,5 @@
+Symbol Table:
+Class test (pid=null):
+ <method> main (rtype=void, paramCnt=0, localCnt=1):
+  [local] (1) x float
+

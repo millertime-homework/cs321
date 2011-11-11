@@ -1,0 +1,7 @@
+Symbol Table:
+Class test (pid=null):
+ <method> main (rtype=void, paramCnt=0, localCnt=3):
+  [local] (1) i int
+  [local] (2) j int
+  [local] (3) k int
+

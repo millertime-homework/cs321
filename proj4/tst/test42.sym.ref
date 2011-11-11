@@ -1,0 +1,9 @@
+Symbol Table:
+Class A (pid=null):
+ <method> get_fval (rtype=float, paramCnt=1, localCnt=1):
+  [param] (1) i int
+  [local] (1) x float
+Class test (pid=null):
+ <method> main (rtype=void, paramCnt=0, localCnt=1):
+  [local] (1) x A
+

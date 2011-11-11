@@ -3,9 +3,9 @@ syllabus.pdf
 javacc-5.0
 class_slides
 videos
+*.class
 proj1/tst/test*.lerr
 proj1/tst/test*.tkn
-proj1/lexer/*.class
 proj1/lexer/ParseException.java
 proj1/lexer/SimpleCharStream.java
 proj1/lexer/Token.java
@@ -13,7 +13,6 @@ proj1/lexer/TokenMgrError.java
 proj1/lexer/miniLexer.java
 proj1/lexer/miniLexerConstants.java
 proj1/lexer/miniLexerTokenManager.java
-proj2/parser0/*.class
 proj2/parser0/ParseException.java
 proj2/parser0/SimpleCharStream.java
 proj2/parser0/Token.java
@@ -23,8 +22,6 @@ proj2/parser0/miniParser0Constants.java
 proj2/parser0/miniParser0TokenManager.java
 proj2/tst/*.perr
 test_lexer
-proj3/parser/*.class
-proj3/ast/*.class
 proj3/tst/*.ast
 proj3/tst/*.perr
 proj3/parser/ParseException.java

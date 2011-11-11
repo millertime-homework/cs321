@@ -1,0 +1,10 @@
+Symbol Table:
+Class Body (pid=null):
+ <method> go (rtype=int, paramCnt=3, localCnt=0):
+  [param] (1) i int
+  [param] (2) j int
+  [param] (3) k int
+Class test (pid=null):
+ <method> main (rtype=void, paramCnt=0, localCnt=1):
+  [local] (1) b Body
+

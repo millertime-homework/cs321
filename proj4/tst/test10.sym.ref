@@ -1,0 +1,14 @@
+Symbol Table:
+Class Body2 (pid=null):
+  [cl var] (1) i int
+ <method> value (rtype=int, paramCnt=1, localCnt=2):
+  [param] (1) cond boolean
+  [local] (1) j int
+  [local] (2) k int
+Class Body (pid=null):
+ <method> go (rtype=int, paramCnt=0, localCnt=1):
+  [local] (1) b Body2
+Class test (pid=null):
+ <method> main (rtype=void, paramCnt=0, localCnt=1):
+  [local] (1) b Body
+

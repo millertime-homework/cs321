@@ -1,0 +1,10 @@
+Symbol Table:
+Class A (pid=null):
+  [cl var] (1) A int
+ <method> A (rtype=int, paramCnt=1, localCnt=0):
+  [param] (1) i int
+Class test (pid=null):
+ <method> main (rtype=void, paramCnt=0, localCnt=2):
+  [local] (1) A int
+  [local] (2) x A
+

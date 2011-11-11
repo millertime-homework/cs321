@@ -1,0 +1,13 @@
+#!/bin/sh
+for i
+do
+	d=`dirname $i`
+	f=`basename $i .ast`
+	echo $d/$f:
+	java symbol/TestSymbol $d/$f.ast 1> $d/$f.sym 2> $d/$f.serr
+	if [ -r $d/$f.sym.ref ]; then diff -w $d/$f.sym $d/$f.sym.ref; fi
+	if [ -r $d/$f.serr.ref ]; then diff -w $d/$f.serr $d/$f.serr.ref;
+	else cat $d/$f.serr; fi
+done
+exit 0
+

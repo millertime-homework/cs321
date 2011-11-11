@@ -1,0 +1,6 @@
+Symbol Table:
+Class test (pid=null):
+ <method> main (rtype=void, paramCnt=0, localCnt=2):
+  [local] (1) b boolean
+  [local] (2) i int
+

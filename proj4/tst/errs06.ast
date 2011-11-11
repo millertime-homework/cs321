@@ -1,0 +1,6 @@
+(Program (ClassDeclList
+ (ClassDecl (Id symErr) (NullExp) 
+ (VarDeclList (VarDecl (BasicType int) (Id i) (NullExp) ) ) 
+ (MethodDeclList
+ (MethodDecl (NullType) (Id main) (FormalList ) (VarDeclList ) (StmtList 
+ (Print (Id i) ) ) ) ) ) ) )
