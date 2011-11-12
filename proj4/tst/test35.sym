@@ -1,0 +1,10 @@
+Symbol Table:
+Class body (pid=null):
+ <method> foo (rtype=int, paramCnt=2, localCnt=0):
+  [param] (1) x int
+  [param] (2) y int
+Class test (pid=null):
+ <method> main (rtype=void, paramCnt=0, localCnt=2):
+  [local] (1) b body
+  [local] (2) i int
+

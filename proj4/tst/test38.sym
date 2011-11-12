@@ -1,0 +1,13 @@
+Symbol Table:
+Class prog (pid=null):
+ <method> main (rtype=void, paramCnt=0, localCnt=2):
+  [local] (1) numbers int[]
+  [local] (2) cnt int
+ <method> selectionSort (rtype=void, paramCnt=2, localCnt=4):
+  [param] (1) A int[]
+  [param] (2) count int
+  [local] (1) temp int
+  [local] (2) i int
+  [local] (3) j int
+  [local] (4) k int
+

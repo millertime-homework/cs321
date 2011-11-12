@@ -1,0 +1,7 @@
+Symbol Table:
+Class A (pid=null):
+ <method> go (rtype=int, paramCnt=0, localCnt=0):
+Class test (pid=null):
+ <method> main (rtype=void, paramCnt=0, localCnt=1):
+  [local] (1) a A
+

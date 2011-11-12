@@ -1,0 +1,7 @@
+Symbol Table:
+Class notErr (pid=null):
+ <method> main (rtype=void, paramCnt=0, localCnt=1):
+  [local] (1) x c
+Class c (pid=null):
+  [cl var] (1) i int
+

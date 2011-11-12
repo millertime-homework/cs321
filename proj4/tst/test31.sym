@@ -1,0 +1,18 @@
+Symbol Table:
+Class A (pid=null):
+  [cl var] (1) x int (IntVal 1) 
+ <method> g (rtype=int, paramCnt=1, localCnt=0):
+  [param] (1) i int
+ <method> f (rtype=int, paramCnt=1, localCnt=0):
+  [param] (1) i int
+Class test (pid=null):
+ <method> main (rtype=void, paramCnt=0, localCnt=4):
+  [local] (1) a A
+  [local] (2) b B
+  [local] (3) i int
+  [local] (4) j int
+Class B (pid=A):
+  [cl var] (2) x int (IntVal 2) 
+ <method> f (rtype=int, paramCnt=1, localCnt=0):
+  [param] (1) i int
+
