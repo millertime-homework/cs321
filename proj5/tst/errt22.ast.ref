@@ -1,0 +1,22 @@
+(Program (ClassDeclList
+ (ClassDecl (Id A) (NullExp) 
+ (VarDeclList ) 
+ (MethodDeclList
+ ) ) (ClassDecl (Id B) (Id A) 
+ (VarDeclList ) 
+ (MethodDeclList
+ ) ) (ClassDecl (Id C) (Id B) 
+ (VarDeclList ) 
+ (MethodDeclList
+ ) ) (ClassDecl (Id D) (Id A) 
+ (VarDeclList ) 
+ (MethodDeclList
+ ) ) (ClassDecl (Id typeErr) (NullExp) 
+ (VarDeclList ) 
+ (MethodDeclList
+ (MethodDecl (NullType) (Id main) (FormalList ) (VarDeclList (VarDecl (ObjType (Id A) ) (Id a) (NullExp) ) (VarDecl (ObjType (Id B) ) (Id b) (NullExp) ) (VarDecl (ObjType (Id C) ) (Id c) (NullExp) ) (VarDecl (ObjType (Id D) ) (Id d) (NullExp) ) ) (StmtList 
+ (Assign (Id a) (Id b) ) 
+ (Assign (Id a) (Id c) ) 
+ (Assign (Id b) (Id c) ) 
+ (Assign (Id b) (Id a) ) 
+ (Assign (Id b) (Id d) ) ) ) ) ) ) )

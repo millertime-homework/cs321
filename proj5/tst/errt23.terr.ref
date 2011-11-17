@@ -1,0 +1,1 @@
+typechk.TypeException: Incorrect operand types in Relop: A== int[]

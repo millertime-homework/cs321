@@ -1,0 +1,6 @@
+(Program (ClassDeclList
+ (ClassDecl (Id typeErr) (NullExp) 
+ (VarDeclList ) 
+ (MethodDeclList
+ (MethodDecl (NullType) (Id main) (FormalList ) (VarDeclList (VarDecl (BasicType int) (Id x) (NullExp) ) ) (StmtList 
+ (Assign (Id x) (BoolVal true) ) ) ) ) ) ) )

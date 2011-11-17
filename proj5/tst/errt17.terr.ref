@@ -1,0 +1,1 @@
+typechk.TypeException: Incompatible types in Assign: int <- boolean

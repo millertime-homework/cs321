@@ -1,0 +1,1 @@
+typechk.TypeException: Binop operands' type mismatch: int+boolean

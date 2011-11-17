@@ -1,0 +1,12 @@
+#!/bin/sh
+for i
+do
+	d=`dirname $i`
+	f=`basename $i .ast`
+	echo $d/$f:
+	java typechk/TestType $d/$f.ast 2>$d/$f.terr
+	if [ -r $d/$f.terr.ref ]; then diff -w $d/$f.terr $d/$f.terr.ref;
+	else cat $d/$f.terr; fi
+done
+exit 0
+

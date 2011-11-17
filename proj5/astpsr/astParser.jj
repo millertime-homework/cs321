@@ -1,0 +1,286 @@
+// For MINI v1.6. (Jingke Li)
+//
+PARSER_BEGIN(astParser)
+package astpsr;
+import ast.*;
+public class astParser {
+}
+PARSER_END(astParser)
+
+SKIP : /* WHITE SPACE */
+{
+  " " | "\t" | "\n" | "\r" | "\f"
+}
+
+TOKEN : 
+{
+  <kwArrayElm:	     "ArrayElm">	  
+| <kwArrayLen:	     "ArrayLen">	   
+| <kwArrayType:	     "ArrayType">	   
+| <kwAssign:	     "Assign">	   
+| <kwBasicType:	     "BasicType">	   
+| <kwBinop:	     "Binop">	   
+| <kwBlock:	     "Block">	   
+| <kwBool:	     "boolean">	   
+| <kwBoolVal:	     "BoolVal">	   
+| <kwCall:	     "Call">	     	   
+| <kwCallStmt:	     "CallStmt">	   
+| <kwClassDecl:	     "ClassDecl">	   
+| <kwClassDeclList:  "ClassDeclList">  
+| <kwExp:	     "Exp">	     	  
+| <kwExpList:	     "ExpList">	   
+| <kwFalse:	     "false">	     	   
+| <kwField:	     "Field">	   
+| <kwFloat:          "float">	     	  
+| <kwFloatVal:	     "FloatVal">	     	  
+| <kwFormal:	     "Formal">	   
+| <kwFormalList:     "FormalList">     
+| <kwId:	     "Id">	     	  
+| <kwIf:	     "If">	     	  
+| <kwInt:	     "int">	     	  
+| <kwIntVal:	     "IntVal">	     	  
+| <kwMethodDecl:     "MethodDecl">     
+| <kwMethodDeclList: "MethodDeclList"> 
+| <kwNewArray:	     "NewArray">	   
+| <kwNewObj:	     "NewObj">	   
+| <kwObjType:        "ObjType">     
+| <kwPrint:	     "Print">	   
+| <kwProgram:	     "Program">	   
+| <kwRelop:	     "Relop">	   
+| <kwReturn:	     "Return">	   
+| <kwStmt:	     "Stmt">	     	   
+| <kwStmtList:	     "StmtList">	   
+| <kwStrVal:	     "StrVal">	     	   
+| <kwThis:	     "This">	     	   
+| <kwTrue:	     "true">	     	   
+| <kwType:	     "Type">	     	   
+| <kwUnop:	     "Unop">	     	  
+| <kwVarDecl:	     "VarDecl">	   
+| <kwVarDeclList:    "VarDeclList">    
+| <kwWhile:          "While">          
+| <kwNullType:       "NullType">          
+| <kwNullStmt:       "NullStmt">          
+| <kwNullExp:        "NullExp">          
+| <#DIGIT:  ["0"-"9"]>
+| <#LETTER: (["A"-"Z"]|["a"-"z"])>
+}
+
+TOKEN : /* INTVAL */
+{
+  <INTVAL: (<DIGIT>)+> 
+  { try { 
+      Integer.parseInt(matchedToken.image); 
+    } catch (Exception e) { 
+      throw new TokenMgrError("Lexical error at line " 
+	+ matchedToken.beginLine + ", column " + matchedToken.beginColumn + 
+	".  Integer value over 2^31-1", 0); 
+    } 
+  }
+}
+
+TOKEN : /* FLOATVAL */
+{
+  <FLOATVAL: ( ((<DIGIT>)+"."(<DIGIT>)*) | ((<DIGIT>)*"."(<DIGIT>)+) )> 
+  { try { 
+      Float.parseFloat(matchedToken.image); 
+    } catch (Exception e) { 
+      throw new TokenMgrError("Lexical error at line " 
+	+ matchedToken.beginLine + ", column " + matchedToken.beginColumn + 
+	".  Float value over limit", 0); 
+    } 
+  }
+}
+
+TOKEN : /* STRVAL */
+{
+  <STRVAL: ("\"" (~["\"","\n"])+ "\"")>
+  { if (matchedToken.image.length() > 257) 
+      throw new TokenMgrError("Lexical error at line " 
+	+ matchedToken.beginLine + ", column " + matchedToken.beginColumn + 
+	".  String length over 255", 0); }
+}
+
+TOKEN : /* ID */
+{
+  <ID: <LETTER> (<LETTER>|<DIGIT>|"_")*>
+  { if (matchedToken.image.length() > 255) 
+      throw new TokenMgrError("Lexical error at line " 
+	+ matchedToken.beginLine + ", column " + matchedToken.beginColumn + 
+	".  Id length over 255", 0); }
+}
+
+Program Program() :
+{ ClassDeclList cl; }
+{
+  "(" "Program" cl=astClassDeclList() ")" <EOF>
+  { return new Program(cl); }
+}
+
+ClassDeclList astClassDeclList() :
+{ ClassDecl c; ClassDeclList cl = new ClassDeclList(); }
+{
+  "(" "ClassDeclList" ( c=astClassDecl() { cl.add(c); } )* ")" 
+  { return cl; }
+}
+
+ClassDecl astClassDecl() :
+{ Exp e1, e2; VarDeclList vl; MethodDeclList ml; }
+{
+  "(" "ClassDecl" e1=astExp() e2=astExp() 
+      vl=astVarDeclList() ml=astMethodDeclList() ")"
+  { return new ClassDecl((Id)e1,(Id)e2,vl,ml); }
+}
+
+VarDeclList astVarDeclList() :
+{ VarDecl v; VarDeclList vl = new VarDeclList(); }
+{
+  "(" "VarDeclList" ( v=astVarDecl() { vl.add(v); } )* ")" 
+  { return vl; }
+}
+
+VarDecl astVarDecl() :
+{ Type t; Exp e1, e2; }
+{
+  "(" "VarDecl" t=astType() e1=astExp() e2=astExp() ")"
+  { return new VarDecl(t,(Id)e1,e2); }
+}
+
+MethodDeclList astMethodDeclList() :
+{ MethodDecl m; MethodDeclList ml = new MethodDeclList(); }
+{
+  "(" "MethodDeclList" ( m=astMethodDecl() { ml.add(m); } )* ")" 
+  { return ml; }
+}
+
+MethodDecl astMethodDecl() :
+{ Type t; Exp e; FormalList fl; VarDeclList vl; StmtList sl; }
+{
+  "(" "MethodDecl" t=astType() e=astExp() fl=astFormalList()  
+      vl=astVarDeclList() sl=astStmtList() ")"
+  { return new MethodDecl(t,(Id)e,fl,vl,sl); }
+}
+
+FormalList astFormalList() :
+{ Formal f; FormalList fl = new FormalList(); }
+{
+  "(" "FormalList" ( f=astFormal() { fl.add(f); } )* ")" 
+  { return fl; }
+}
+
+Formal astFormal() :
+{ Type t; Exp e; }
+{
+  "(" "Formal" t=astType() e=astExp() ")"
+  { return new Formal(t,(Id)e); }
+}
+
+StmtList astStmtList() :
+{ Stmt s; StmtList sl = new StmtList(); }
+{
+  "(" "StmtList" ( s=astStmt() { sl.add(s); } )* ")" 
+  { return sl; }
+}
+
+ExpList astExpList() :
+{ Exp e; ExpList el = new ExpList(); }
+{
+  "(" "ExpList" ( e=astExp() { el.add(e); } )* ")" 
+  { return el; }
+}
+
+Type astType() :
+{ Type t; Exp e; }
+{
+  "("			
+  ( "BasicType" ( <kwInt>     { t = new BasicType(BasicType.Int); }
+                | <kwFloat>   { t = new BasicType(BasicType.Float); }
+                | <kwBool>    { t = new BasicType(BasicType.Bool); } )
+  | "ObjType" e=astExp()    { t = new ObjType((Id)e); }
+  | "ArrayType" t=astType() { t = new ArrayType(t); }
+  | "NullType"              { t = null; } ) 
+  ")" 
+  { return t; }
+}
+
+Stmt astStmt() :
+{ Exp e1, e2; Stmt s, s1, s2; ExpList el; StmtList sl; }
+{
+  "("	
+  ( "Block" sl=astStmtList()         { s = new Block(sl); }
+  | "Assign" e1=astExp() e2=astExp() { s = new Assign(e1,e2); }
+  | "CallStmt" e1=astExp() 
+      e2=astExp() el=astExpList()    { s = new CallStmt(e1,(Id)e2,el); }
+  | "If" e1=astExp() 
+      s1=astStmt() s2=astStmt()      { s = new If(e1,s1,s2); }
+  | "While" e1=astExp() s1=astStmt() { s = new While(e1,s1); }
+  | "Print" e1=astExp()      	     { s = new Print(e1); }
+  | "Return" e1=astExp()             { s = new Return(e1); }
+  | "NullStmt" 			     { s = null; } ) 
+  ")"	
+  { return s; }
+}
+
+int binOp() :
+{}
+{ 
+  ( "+"    { return ast.Binop.ADD; }
+  | "-"    { return ast.Binop.SUB; }
+  | "*"    { return ast.Binop.MUL; }
+  | "/"    { return ast.Binop.DIV; }
+  | "&&"   { return ast.Binop.AND; }
+  | "||"   { return ast.Binop.OR;  } 
+  )
+}
+
+int relOp() :
+{}
+{ 
+  ( "=="   { return ast.Relop.EQ; }
+  | "!="   { return ast.Relop.NE; }
+  | "<"    { return ast.Relop.LT; }
+  | "<="   { return ast.Relop.LE; }
+  | ">"    { return ast.Relop.GT; }
+  | ">="   { return ast.Relop.GE; } 
+  )
+}
+
+int unOp() :
+{}
+{ 
+  ( "-"    { return ast.Unop.NEG; }
+  | "!"    { return ast.Unop.NOT; }
+  )
+}
+
+Exp astExp() :
+{ Type t; Token n; int op, size; Exp e, e1, e2; ExpList el; }
+{
+  "("	
+  ( "ArrayElm" e1=astExp() e2=astExp()
+			        { e = new ArrayElm(e1,e2); }
+  | "ArrayLen" e1=astExp()    	{ e = new ArrayLen(e1); }
+  | "Binop" op=binOp() e1=astExp() e2=astExp()
+    	    	       		{ e = new Binop(op,e1,e2); }
+  | "BoolVal" ( <kwTrue>  	{ e = new BoolVal(true); }
+              | <kwFalse> 	{ e = new BoolVal(false); } )
+  | "Call" e1=astExp() e2=astExp() el=astExpList()
+				{ e = new Call(e1,(Id)e2,el); }
+  | "FloatVal" n=<FLOATVAL>     { e = new FloatVal(Float.parseFloat(n.image)); }
+  | "Id" n=<ID>			{ e = new Id(n.image); }
+  | "IntVal" n=<INTVAL>		{ e = new IntVal(Integer.parseInt(n.image)); }
+  | "Field" e1=astExp() e2=astExp()
+    	     		        { e = new Field(e1,(Id)e2); }
+  | "NewArray" t=astType() n=<INTVAL>
+				{ e = new NewArray((Type)t,Integer.parseInt(n.image)); }
+  | "NewObj" e1=astExp() el=astExpList()
+				{ e = new NewObj((Id)e1,el); }
+  | "Relop" op=relOp() e1=astExp() e2=astExp()
+    	    	       	   	{ e = new Relop(op,e1,e2); }
+  | "StrVal" n=<STRVAL>         { String s = n.image; 
+                                  e = new StrVal(s.substring(1,s.length()-1)); }
+  | "This"                      { e = new This(); }
+  | "Unop" op=unOp() e1=astExp() { e = new Unop(op,e1); }
+  | "NullExp" 			{ e = null; } )
+  ")"
+  { return e; }
+}

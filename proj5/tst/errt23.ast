@@ -1,0 +1,13 @@
+(Program (ClassDeclList
+ (ClassDecl (Id A) (NullExp) 
+ (VarDeclList ) 
+ (MethodDeclList
+ ) ) (ClassDecl (Id typeErr) (NullExp) 
+ (VarDeclList ) 
+ (MethodDeclList
+ (MethodDecl (NullType) (Id main) (FormalList ) (VarDeclList (VarDecl (ObjType (Id A) ) (Id a) (NewObj (Id A) (ExpList ) ) ) (VarDecl (ObjType (Id A) ) (Id b) (NewObj (Id A) (ExpList ) ) ) (VarDecl (ArrayType (BasicType int) ) (Id x) (NewArray (BasicType int) 5) ) (VarDecl (ArrayType (BasicType int) ) (Id y) (NewArray (BasicType int) 4) ) (VarDecl (ArrayType (BasicType int) ) (Id z) (Id x) ) ) (StmtList 
+ (Print (Relop == (Id a) (Id b) ) ) 
+ (Print (Relop == (Id x) (Id y) ) ) 
+ (Print (Relop == (Id a) (Id x) ) ) 
+ (Print (Relop < (Id a) (Id b) ) ) 
+ (Print (Relop < (Id x) (Id z) ) ) ) ) ) ) ) )

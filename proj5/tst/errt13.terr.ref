@@ -1,0 +1,1 @@
+typechk.TypeException: Argument to Print must be of a basic type or a string literal: int[]
