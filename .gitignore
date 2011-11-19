@@ -31,3 +31,4 @@ proj3/parser/TokenMgrError.java
 proj3/parser/miniParser.java
 proj3/parser/miniParserConstants.java
 proj3/parser/miniParserTokenManager.java
+proj5/tst/*.terr
